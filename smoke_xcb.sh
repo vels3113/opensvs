@@ -9,7 +9,7 @@ chmod 700 "${RDIR}"
 
 XDG_RUNTIME_DIR="${RDIR}" QT_QPA_PLATFORM=xcb ./build/src/opensvs >/tmp/opensvs_xcb.log 2>&1 &
 pid=$!
-sleep 2
+sleep 3
 kill "${pid}" >/dev/null 2>&1 || true
 wait "${pid}" 2>/dev/null || true
 
