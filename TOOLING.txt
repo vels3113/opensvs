@@ -1,0 +1,9 @@
+netgen_path=/usr/local/bin/netgen
+netgen_version=1.5.309
+man_netgen=unavailable (use built-in help)
+qt6_qmake=/usr/lib/qt6/bin/qmake6
+qt6_plugin_dir=/usr/lib/x86_64-linux-gnu/qt6/plugins
+qt6_cmake_prefix=/usr/lib/x86_64-linux-gnu/cmake/Qt6
+cmake_version=3.31.9
+ninja_version=1.10.1
+jq_path=/usr/bin/jq
