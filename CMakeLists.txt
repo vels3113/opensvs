@@ -12,5 +12,6 @@ endif()
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets Test)
 
-add_subdirectory(src)
 enable_testing()
+add_subdirectory(src)
+add_subdirectory(tests)

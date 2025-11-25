@@ -1,0 +1,26 @@
+{
+  "summary": {
+    "device_mismatches": 1,
+    "net_mismatches": 2,
+    "shorts": 0,
+    "opens": 0,
+    "total_devices": 10,
+    "total_nets": 12
+  },
+  "diffs": [
+    {
+      "type": "net_mismatch",
+      "name": "net_vdd",
+      "layout_cell": "top_layout",
+      "schematic_cell": "top_schem",
+      "details": "Extra connection on layout side"
+    },
+    {
+      "type": "device_mismatch",
+      "name": "M1",
+      "layout_cell": "top_layout",
+      "schematic_cell": "top_schem",
+      "details": "Parameter W differs"
+    }
+  ]
+}
