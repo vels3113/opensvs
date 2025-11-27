@@ -19,6 +19,5 @@ public:
     void setDiffs(const QVector<NetgenJsonParser::DiffEntry> &diffs);
 
 private:
-    static const int NUM_COLUMNS = 5;
     QVector<NetgenJsonParser::DiffEntry> diffs_;
 };

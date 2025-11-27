@@ -1,3 +1,4 @@
+#include "models/DiffEntryCommon.hpp"
 #include "models/DiffEntryModel.hpp"
 
 DiffEntryModel::DiffEntryModel(QObject *parent)
@@ -18,7 +19,7 @@ int DiffEntryModel::columnCount(const QModelIndex &parent) const
     if (parent.isValid()) {
         return 0;
     }
-    return NUM_COLUMNS;
+    return DiffEntryColumns::NUM_COLUMNS;
 }
 
 QVariant DiffEntryModel::data(const QModelIndex &index, int role) const
@@ -32,15 +33,15 @@ QVariant DiffEntryModel::data(const QModelIndex &index, int role) const
 
     const auto &entry = diffs_.at(index.row());
     switch (index.column()) {
-    case 0:
+    case DiffEntryColumns::TYPE:
         return NetgenJsonParser::toTypeString(entry.type);
-    case 1:
+    case DiffEntryColumns::OBJECT:
         return entry.name;
-    case 2:
+    case DiffEntryColumns::LAYOUT_CELL:
         return entry.layoutCell;
-    case 3:
+    case DiffEntryColumns::SCHEMATIC_CELL:
         return entry.schematicCell;
-    case 4:
+    case DiffEntryColumns::DETAILS:
         return entry.details;
     default:
         return {};
@@ -54,11 +55,11 @@ QVariant DiffEntryModel::headerData(int section, Qt::Orientation orientation, in
     }
 
     switch (section) {
-    case 0: return QStringLiteral("Type");
-    case 1: return QStringLiteral("Object");
-    case 2: return QStringLiteral("Layout Cell");
-    case 3: return QStringLiteral("Schematic Cell");
-    case 4: return QStringLiteral("Details");
+    case DiffEntryColumns::TYPE: return QStringLiteral("Type");
+    case DiffEntryColumns::OBJECT: return QStringLiteral("Object");
+    case DiffEntryColumns::LAYOUT_CELL: return QStringLiteral("Layout Cell");
+    case DiffEntryColumns::SCHEMATIC_CELL: return QStringLiteral("Schematic Cell");
+    case DiffEntryColumns::DETAILS: return QStringLiteral("Details");
     default: return {};
     }
 }

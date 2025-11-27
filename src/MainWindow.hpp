@@ -7,9 +7,12 @@ class QTableView;
 class QAction;
 class QMenu;
 class QStatusBar;
+class QComboBox;
+class QLineEdit;
 
-class DiffEntryModel;
-class NetgenJsonParser;
+#include "models/DiffEntryModel.hpp"
+#include "models/DiffFilterProxyModel.hpp"
+#include "parsers/NetgenJsonParser.hpp"
 
 
 class MainWindow : public QMainWindow
@@ -28,7 +31,10 @@ private:
     void showStatus(const QString &msg);
 
     DiffEntryModel *diffModel_{nullptr};
+    DiffFilterProxyModel *proxyModel_{nullptr};
     QTableView *diffTable_{nullptr};
+    QComboBox *typeFilter_{nullptr};
+    QLineEdit *searchField_{nullptr};
     QLabel *deviceMismatchLabel_{nullptr};
     QLabel *netMismatchLabel_{nullptr};
     QLabel *totalDevicesLabel_{nullptr};

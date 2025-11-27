@@ -19,8 +19,6 @@ add_executable(diffentry_model_tests
 
 target_include_directories(diffentry_model_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/parsers
-    ${CMAKE_SOURCE_DIR}/src/models
 )
 target_link_libraries(diffentry_model_tests PRIVATE Qt6::Test Qt6::Core Qt6::Widgets)
 
@@ -28,10 +26,28 @@ add_test(NAME diffentry_model_tests
     COMMAND ${CMAKE_COMMAND} -E env QT_QPA_PLATFORM=offscreen XDG_RUNTIME_DIR=/tmp ${CMAKE_BINARY_DIR}/tests/diffentry_model_tests
 )
 
+
+add_executable(difffilter_model_tests
+    models/DiffFilterProxyModelTests.cpp
+    ${CMAKE_SOURCE_DIR}/src/models/DiffFilterProxyModel.cpp
+    ${CMAKE_SOURCE_DIR}/src/models/DiffEntryModel.cpp
+    ${CMAKE_SOURCE_DIR}/src/parsers/NetgenJsonParser.cpp
+)
+
+target_include_directories(difffilter_model_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+target_link_libraries(difffilter_model_tests PRIVATE Qt6::Test Qt6::Core Qt6::Widgets)
+
+add_test(NAME difffilter_model_tests
+    COMMAND ${CMAKE_COMMAND} -E env QT_QPA_PLATFORM=offscreen XDG_RUNTIME_DIR=/tmp ${CMAKE_BINARY_DIR}/tests/difffilter_model_tests
+)
+
 add_executable(mainwindow_smoke_tests
     ui/MainWindowSmokeTests.cpp
     ${CMAKE_SOURCE_DIR}/src/MainWindow.cpp
     ${CMAKE_SOURCE_DIR}/src/models/DiffEntryModel.cpp
+    ${CMAKE_SOURCE_DIR}/src/models/DiffFilterProxyModel.cpp
     ${CMAKE_SOURCE_DIR}/src/parsers/NetgenJsonParser.cpp
 )
 

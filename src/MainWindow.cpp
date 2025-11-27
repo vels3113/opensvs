@@ -1,11 +1,14 @@
 #include "MainWindow.hpp"
 
 #include <QAbstractItemView>
+#include <QAbstractItemView>
 #include <QAction>
+#include <QComboBox>
 #include <QFileDialog>
 #include <QGridLayout>
 #include <QHeaderView>
 #include <QLabel>
+#include <QLineEdit>
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QStatusBar>
@@ -13,11 +16,13 @@
 #include <QVBoxLayout>
 
 #include "models/DiffEntryModel.hpp"
+#include "models/DiffFilterProxyModel.hpp"
 #include "parsers/NetgenJsonParser.hpp"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , diffModel_(new DiffEntryModel(this))
+    , proxyModel_(new DiffFilterProxyModel(this))
 {
     setWindowTitle(tr("OpenSVS"));
     setMinimumSize(800, 600);
@@ -38,6 +43,7 @@ bool MainWindow::loadFile(const QString &path, bool showError)
     }
 
     diffModel_->setDiffs(report.diffs);
+    proxyModel_->invalidate();
     setSummary(report.summary.deviceMismatches,
                report.summary.netMismatches,
                report.summary.shorts,
@@ -77,9 +83,25 @@ void MainWindow::buildUi()
 
     layout->addLayout(summaryGrid);
 
+    auto *filterRow = new QHBoxLayout();
+    filterRow->setSpacing(8);
+    typeFilter_ = new QComboBox(central);
+    typeFilter_->setObjectName(QStringLiteral("typeFilter"));
+    typeFilter_->addItems({tr("All"), tr("net_mismatch"), tr("device_mismatch")});
+    searchField_ = new QLineEdit(central);
+    searchField_->setObjectName(QStringLiteral("searchField"));
+    searchField_->setPlaceholderText(tr("Search object/details"));
+    filterRow->addWidget(new QLabel(tr("Type:"), central));
+    filterRow->addWidget(typeFilter_);
+    filterRow->addWidget(new QLabel(tr("Search:"), central));
+    filterRow->addWidget(searchField_, 1);
+    layout->addLayout(filterRow);
+
+    proxyModel_->setSourceModel(diffModel_);
+
     diffTable_ = new QTableView(central);
     diffTable_->setObjectName(QStringLiteral("diffTableView"));
-    diffTable_->setModel(diffModel_);
+    diffTable_->setModel(proxyModel_);
     diffTable_->horizontalHeader()->setStretchLastSection(true);
     diffTable_->setSelectionBehavior(QAbstractItemView::SelectRows);
     diffTable_->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -87,6 +109,13 @@ void MainWindow::buildUi()
     layout->addWidget(diffTable_, 1);
 
     setCentralWidget(central);
+
+    connect(typeFilter_, &QComboBox::currentTextChanged, this, [this](const QString &text) {
+        proxyModel_->setTypeFilter(text);
+    });
+    connect(searchField_, &QLineEdit::textChanged, this, [this](const QString &text) {
+        proxyModel_->setSearchTerm(text);
+    });
 }
 
 void MainWindow::buildMenus()

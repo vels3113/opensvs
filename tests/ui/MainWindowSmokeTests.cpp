@@ -1,6 +1,8 @@
 #include <QtTest>
 
 #include <QLabel>
+#include <QComboBox>
+#include <QLineEdit>
 #include <QTableView>
 
 #include "MainWindow.hpp"
@@ -35,6 +37,16 @@ void MainWindowSmokeTests::loads_fixture_and_populates_ui()
     QCOMPARE(nets_mismatches->text(), QStringLiteral("1"));
     QCOMPARE(totalDevices->text(), QStringLiteral("10"));
     QCOMPARE(totalNets->text(), QStringLiteral("12"));
+
+    auto *typeFilter = window.findChild<QComboBox*>(QStringLiteral("typeFilter"));
+    auto *searchField = window.findChild<QLineEdit*>(QStringLiteral("searchField"));
+    QVERIFY(typeFilter && searchField);
+
+    typeFilter->setCurrentText(QStringLiteral("device_mismatch"));
+    QCOMPARE(table->model()->rowCount(), 1);
+
+    searchField->setText(QStringLiteral("nope"));
+    QCOMPARE(table->model()->rowCount(), 0);
 }
 
 QTEST_MAIN(MainWindowSmokeTests)
