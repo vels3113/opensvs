@@ -1,0 +1,24 @@
+#pragma once
+
+#include <QAbstractTableModel>
+#include <QVector>
+
+#include "parsers/NetgenJsonParser.hpp"
+
+class DiffEntryModel : public QAbstractTableModel
+{
+    Q_OBJECT
+public:
+    explicit DiffEntryModel(QObject *parent = nullptr);
+
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+    int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
+
+    void setDiffs(const QVector<NetgenJsonParser::DiffEntry> &diffs);
+
+private:
+    static const int NUM_COLUMNS = 5;
+    QVector<NetgenJsonParser::DiffEntry> diffs_;
+};
