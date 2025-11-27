@@ -1,7 +1,7 @@
 {
   "summary": {
     "device_mismatches": 1,
-    "net_mismatches": 2,
+    "net_mismatches": 1,
     "shorts": 0,
     "opens": 0,
     "total_devices": 10,

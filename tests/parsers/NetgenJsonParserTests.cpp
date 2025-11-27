@@ -22,7 +22,7 @@ void NetgenJsonParserTests::parses_sample_fixture()
     QVERIFY2(report.ok, qPrintable(QStringLiteral("Expected ok parse, got error: %1").arg(report.error)));
 
     QCOMPARE(report.summary.deviceMismatches, 1);
-    QCOMPARE(report.summary.netMismatches, 2);
+    QCOMPARE(report.summary.netMismatches, 1);
     QCOMPARE(report.summary.shorts, 0);
     QCOMPARE(report.summary.opens, 0);
     QCOMPARE(report.summary.totalDevices, 10);
