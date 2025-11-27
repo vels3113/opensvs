@@ -67,3 +67,16 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
     report.ok = true;
     return report;
 }
+
+QString NetgenJsonParser::toTypeString(NetgenJsonParser::DiffType type)
+{
+    switch (type) {
+    case NetgenJsonParser::DiffType::NetMismatch:
+        return QStringLiteral("net_mismatch");
+    case NetgenJsonParser::DiffType::DeviceMismatch:
+        return QStringLiteral("device_mismatch");
+    case NetgenJsonParser::DiffType::Unknown:
+    default:
+        return QStringLiteral("unknown");
+    }
+}

@@ -37,4 +37,6 @@ public:
     };
 
     Report parseFile(const QString &path) const;
+
+    static QString toTypeString(DiffType type);
 };
