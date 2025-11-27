@@ -1,7 +1,7 @@
 add_executable(opensvs
     main.cpp
     MainWindow.cpp
-    MainWindow.h
+    MainWindow.hpp
     parsers/NetgenJsonParser.cpp
     parsers/NetgenJsonParser.hpp
 )
