@@ -83,7 +83,8 @@ void MainWindow::buildUi()
     diffTable_->horizontalHeader()->setStretchLastSection(true);
     diffTable_->setSelectionBehavior(QAbstractItemView::SelectRows);
     diffTable_->setSelectionMode(QAbstractItemView::SingleSelection);
-    layout->addWidget(diffTable_, /*stretch*/ 1);
+
+    layout->addWidget(diffTable_, 1);
 
     setCentralWidget(central);
 }

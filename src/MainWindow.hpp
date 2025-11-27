@@ -35,4 +35,4 @@ private:
     QLabel *totalNetsLabel_{nullptr};
     QLabel *shortsLabel_{nullptr};
     QLabel *opensLabel_{nullptr};
-}; 
+};
