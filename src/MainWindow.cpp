@@ -15,6 +15,7 @@
 #include <QStatusBar>
 #include <QTableView>
 #include <QVBoxLayout>
+#include <QDateTime>
 
 #include "models/DiffEntryModel.hpp"
 #include "models/DiffFilterProxyModel.hpp"
@@ -178,7 +179,11 @@ void MainWindow::showStatus(const QString &msg)
 
 void MainWindow::logEvent(const QString &msg)
 {
-    logLines_.prepend(msg);
+    const QString stamped = QStringLiteral("[%1] %2")
+            .arg(QDateTime::currentDateTime().toString(Qt::ISODateWithMs))
+            .arg(msg);
+
+    logLines_.prepend(stamped);
     const int maxLines = 50;
     while (logLines_.size() > maxLines) {
         logLines_.removeLast();
