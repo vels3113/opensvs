@@ -10,6 +10,7 @@ class QMenu;
 class QStatusBar;
 class QComboBox;
 class QLineEdit;
+class QMenu;
 
 #include "models/DiffEntryModel.hpp"
 #include "models/DiffFilterProxyModel.hpp"
@@ -31,6 +32,7 @@ private:
     void setSummary(int device, int net, int shorts, int opens, int totalDevices, int totalNets);
     void showStatus(const QString &msg);
     void logEvent(const QString &msg);
+    void rebuildRecentFilesMenu();
     void openLogDialog();
 
     DiffEntryModel *diffModel_{nullptr};
@@ -38,6 +40,8 @@ private:
     QTableView *diffTable_{nullptr};
     QComboBox *typeFilter_{nullptr};
     QLineEdit *searchField_{nullptr};
+    QMenu *recentMenu_{nullptr};
+    QStringList recentFiles_;
     QStringList logLines_;
     QLabel *deviceMismatchLabel_{nullptr};
     QLabel *netMismatchLabel_{nullptr};

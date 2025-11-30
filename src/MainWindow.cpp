@@ -55,6 +55,17 @@ bool MainWindow::loadFile(const QString &path, bool showError)
     const QString msg = tr("Loaded %1 diffs from %2").arg(report.diffs.size()).arg(path);
     showStatus(msg);
     logEvent(msg);
+
+    // Track recent files
+    if (!path.isEmpty()) {
+        recentFiles_.removeAll(path);
+        recentFiles_.prepend(path);
+        const int maxRecent = 5;
+        while (recentFiles_.size() > maxRecent) {
+            recentFiles_.removeLast();
+        }
+        rebuildRecentFilesMenu();
+    }
     return true;
 }
 
@@ -137,6 +148,10 @@ void MainWindow::buildMenus()
         }
     });
     fileMenu->addAction(openAction);
+
+    recentMenu_ = fileMenu->addMenu(tr("Recent Files"));
+    rebuildRecentFilesMenu();
+
     auto *logAction = new QAction(tr("View Log"), this);
     connect(logAction, &QAction::triggered, this, [this]() {
         openLogDialog();
@@ -170,6 +185,22 @@ void MainWindow::logEvent(const QString &msg)
     }
 }
 
+void MainWindow::rebuildRecentFilesMenu()
+{
+    if (!recentMenu_) return;
+    recentMenu_->clear();
+    if (recentFiles_.isEmpty()) {
+        QAction *empty = recentMenu_->addAction(tr("No recent files"));
+        empty->setEnabled(false);
+        return;
+    }
+    for (const QString &path : recentFiles_) {
+        QAction *act = recentMenu_->addAction(path);
+        connect(act, &QAction::triggered, this, [this, path]() {
+            loadFile(path, true);
+        });
+    }
+}
 
 void MainWindow::openLogDialog()
 {
