@@ -11,6 +11,7 @@
 #include <QLineEdit>
 #include <QMenuBar>
 #include <QMessageBox>
+#include <QPlainTextEdit>
 #include <QStatusBar>
 #include <QTableView>
 #include <QVBoxLayout>
@@ -29,6 +30,7 @@ MainWindow::MainWindow(QWidget *parent)
     buildUi();
     buildMenus();
     showStatus(tr("Use File -> Open to load a JSON report."));
+    logEvent(tr("Application started"));
 }
 
 bool MainWindow::loadFile(const QString &path, bool showError)
@@ -50,7 +52,9 @@ bool MainWindow::loadFile(const QString &path, bool showError)
                report.summary.opens,
                report.summary.totalDevices,
                report.summary.totalNets);
-    showStatus(tr("Loaded %1 diffs from %2").arg(report.diffs.size()).arg(path));
+    const QString msg = tr("Loaded %1 diffs from %2").arg(report.diffs.size()).arg(path);
+    showStatus(msg);
+    logEvent(msg);
     return true;
 }
 
@@ -133,6 +137,11 @@ void MainWindow::buildMenus()
         }
     });
     fileMenu->addAction(openAction);
+    auto *logAction = new QAction(tr("View Log"), this);
+    connect(logAction, &QAction::triggered, this, [this]() {
+        openLogDialog();
+    });
+    fileMenu->addAction(logAction);
 }
 
 void MainWindow::setSummary(int device, int net, int shorts, int opens, int totalDevices, int totalNets)
@@ -150,4 +159,27 @@ void MainWindow::showStatus(const QString &msg)
     if (QStatusBar *sb = statusBar()) {
         sb->showMessage(msg, 5000);
     }
+}
+
+void MainWindow::logEvent(const QString &msg)
+{
+    logLines_.prepend(msg);
+    const int maxLines = 50;
+    while (logLines_.size() > maxLines) {
+        logLines_.removeLast();
+    }
+}
+
+
+void MainWindow::openLogDialog()
+{
+    QDialog dlg(this);
+    dlg.setWindowTitle(tr("Session Log"));
+    auto *layout = new QVBoxLayout(&dlg);
+    auto *text = new QPlainTextEdit(&dlg);
+    text->setReadOnly(true);
+    text->setPlainText(logLines_.join('\n'));
+    layout->addWidget(text);
+    dlg.resize(500, 300);
+    dlg.exec();
 }

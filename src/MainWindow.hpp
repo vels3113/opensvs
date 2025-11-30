@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QMainWindow>
+#include <QStringList>
 
 class QLabel;
 class QTableView;
@@ -29,12 +30,15 @@ private:
     void buildMenus();
     void setSummary(int device, int net, int shorts, int opens, int totalDevices, int totalNets);
     void showStatus(const QString &msg);
+    void logEvent(const QString &msg);
+    void openLogDialog();
 
     DiffEntryModel *diffModel_{nullptr};
     DiffFilterProxyModel *proxyModel_{nullptr};
     QTableView *diffTable_{nullptr};
     QComboBox *typeFilter_{nullptr};
     QLineEdit *searchField_{nullptr};
+    QStringList logLines_;
     QLabel *deviceMismatchLabel_{nullptr};
     QLabel *netMismatchLabel_{nullptr};
     QLabel *totalDevicesLabel_{nullptr};
