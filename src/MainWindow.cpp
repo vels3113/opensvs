@@ -16,6 +16,9 @@
 #include <QTableView>
 #include <QVBoxLayout>
 #include <QDateTime>
+#include <QStandardPaths>
+#include <QFile>
+#include <QTextStream>
 
 #include "models/DiffEntryModel.hpp"
 #include "models/DiffFilterProxyModel.hpp"
@@ -188,6 +191,23 @@ void MainWindow::logEvent(const QString &msg)
     while (logLines_.size() > maxLines) {
         logLines_.removeLast();
     }
+    appendLogToDisk(stamped);
+}
+
+void MainWindow::appendLogToDisk(const QString &line)
+{
+    const QString path = logFilePath();
+    if (path.isEmpty()) return;
+
+    QFile f(path);
+    if (f.size() > 1024 * 1024) { // rotate at ~1MB
+        f.remove(path + QStringLiteral(".1"));
+        f.rename(path + QStringLiteral(".1"));
+    }
+    if (f.open(QIODevice::Append | QIODevice::Text)) {
+        QTextStream out(&f);
+        out << line << '\n';
+    }
 }
 
 void MainWindow::rebuildRecentFilesMenu()
@@ -218,4 +238,13 @@ void MainWindow::openLogDialog()
     layout->addWidget(text);
     dlg.resize(500, 300);
     dlg.exec();
+}
+
+QString MainWindow::logFilePath() const
+{
+    const QString dir = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
+    if (dir.isEmpty()) {
+        return {};
+    }
+    return dir + QStringLiteral("/opensvs.log");
 }

@@ -32,8 +32,10 @@ private:
     void setSummary(int device, int net, int shorts, int opens, int totalDevices, int totalNets);
     void showStatus(const QString &msg);
     void logEvent(const QString &msg);
+    void appendLogToDisk(const QString &line);
     void rebuildRecentFilesMenu();
     void openLogDialog();
+    QString logFilePath() const;
 
     DiffEntryModel *diffModel_{nullptr};
     DiffFilterProxyModel *proxyModel_{nullptr};
