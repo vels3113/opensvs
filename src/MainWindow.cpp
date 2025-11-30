@@ -19,6 +19,7 @@
 #include <QStandardPaths>
 #include <QFile>
 #include <QTextStream>
+#include <QDir>
 
 #include "models/DiffEntryModel.hpp"
 #include "models/DiffFilterProxyModel.hpp"
@@ -31,6 +32,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     setWindowTitle(tr("OpenSVS"));
     setMinimumSize(800, 600);
+    loadRecentFiles();
     buildUi();
     buildMenus();
     showStatus(tr("Use File -> Open to load a JSON report."));
@@ -64,11 +66,12 @@ bool MainWindow::loadFile(const QString &path, bool showError)
     if (!path.isEmpty()) {
         recentFiles_.removeAll(path);
         recentFiles_.prepend(path);
-        const int maxRecent = 5;
+        const int maxRecent = 10;
         while (recentFiles_.size() > maxRecent) {
             recentFiles_.removeLast();
         }
         rebuildRecentFilesMenu();
+        saveRecentFiles();
     }
     return true;
 }
@@ -247,4 +250,48 @@ QString MainWindow::logFilePath() const
         return {};
     }
     return dir + QStringLiteral("/opensvs.log");
+}
+
+void MainWindow::loadRecentFiles()
+{
+    const QString path = recentFilesPath();
+    if (path.isEmpty()) return;
+    QFile f(path);
+    if (!f.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        return;
+    }
+    QStringList lines;
+    QTextStream in(&f);
+    while (!in.atEnd()) {
+        const QString line = in.readLine().trimmed();
+        if (!line.isEmpty()) {
+            lines.append(line);
+        }
+    }
+    const int maxRecent = 10;
+    while (lines.size() > maxRecent) {
+        lines.removeLast();
+    }
+    recentFiles_ = lines;
+}
+
+void MainWindow::saveRecentFiles() const
+{
+    const QString path = recentFilesPath();
+    if (path.isEmpty()) return;
+    QDir().mkpath(QFileInfo(path).absolutePath());
+    QFile f(path);
+    if (f.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
+        QTextStream out(&f);
+        for (const QString &p : recentFiles_) {
+            out << p << '\n';
+        }
+    }
+}
+
+QString MainWindow::recentFilesPath() const
+{
+    const QString dir = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
+    if (dir.isEmpty()) return {};
+    return dir + QStringLiteral("/opensvs_recent.txt");
 }

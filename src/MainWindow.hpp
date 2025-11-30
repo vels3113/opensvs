@@ -36,6 +36,9 @@ private:
     void rebuildRecentFilesMenu();
     void openLogDialog();
     QString logFilePath() const;
+    void loadRecentFiles();
+    void saveRecentFiles() const;
+    QString recentFilesPath() const;
 
     DiffEntryModel *diffModel_{nullptr};
     DiffFilterProxyModel *proxyModel_{nullptr};
