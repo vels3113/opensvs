@@ -4,6 +4,8 @@
 #include <QComboBox>
 #include <QLineEdit>
 #include <QTableView>
+#include <QPushButton>
+#include <QStackedWidget>
 
 #include "MainWindow.hpp"
 
@@ -12,12 +14,18 @@ class MainWindowSmokeTests : public QObject
     Q_OBJECT
 
 private slots:
-    void loads_fixture_and_populates_ui();
+    void shows_welcome_and_populates_after_load();
 };
 
-void MainWindowSmokeTests::loads_fixture_and_populates_ui()
+void MainWindowSmokeTests::shows_welcome_and_populates_after_load()
 {
     MainWindow window;
+    auto *stack = window.findChild<QStackedWidget*>(QString(), Qt::FindChildrenRecursively);
+    QVERIFY(stack);
+    QCOMPARE(stack->currentIndex(), 0); // welcome page
+    auto buttons = window.findChildren<QPushButton*>(QString(), Qt::FindChildrenRecursively);
+    QVERIFY(!buttons.isEmpty());
+
     const QString fixturePath = QStringLiteral(FIXTURE_PATH);
 
     QVERIFY2(window.loadFile(fixturePath, false), "Expected fixture load to succeed");

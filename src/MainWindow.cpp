@@ -12,7 +12,9 @@
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QPlainTextEdit>
+#include <QPushButton>
 #include <QStatusBar>
+#include <QStackedWidget>
 #include <QTableView>
 #include <QVBoxLayout>
 #include <QDateTime>
@@ -73,23 +75,57 @@ bool MainWindow::loadFile(const QString &path, bool showError)
         rebuildRecentFilesMenu();
         saveRecentFiles();
     }
+    if (stack_ && contentPage_) {
+        stack_->setCurrentWidget(contentPage_);
+    }
     return true;
 }
 
 void MainWindow::buildUi()
 {
-    auto *central = new QWidget(this);
-    auto *layout = new QVBoxLayout(central);
+    stack_ = new QStackedWidget(this);
+
+    // Welcome page
+    welcomePage_ = new QWidget(stack_);
+    auto *welcomeLayout = new QVBoxLayout(welcomePage_);
+    welcomeLayout->setContentsMargins(16, 16, 16, 16);
+    welcomeLayout->setSpacing(12);
+    auto *welcomeLabel = new QLabel(tr("OpenSVS\nLoad a netgen JSON report to begin."), welcomePage_);
+    welcomeLabel->setAlignment(Qt::AlignCenter);
+    loadButton_ = new QPushButton(tr("Load file..."), welcomePage_);
+    welcomeLayout->addStretch(1);
+    welcomeLayout->addWidget(welcomeLabel, 0, Qt::AlignCenter);
+    welcomeLayout->addWidget(loadButton_, 0, Qt::AlignHCenter);
+    welcomeLayout->addStretch(2);
+    stack_->addWidget(welcomePage_);
+
+    // Content page
+    contentPage_ = new QWidget(stack_);
+    auto *layout = new QVBoxLayout(contentPage_);
     layout->setContentsMargins(8, 8, 8, 8);
     layout->setSpacing(8);
+
+    auto *filterRow = new QHBoxLayout();
+    filterRow->setSpacing(8);
+    typeFilter_ = new QComboBox(contentPage_);
+    typeFilter_->setObjectName(QStringLiteral("typeFilter"));
+    typeFilter_->addItems({tr("All"), tr("net_mismatch"), tr("device_mismatch")});
+    searchField_ = new QLineEdit(contentPage_);
+    searchField_->setObjectName(QStringLiteral("searchField"));
+    searchField_->setPlaceholderText(tr("Search object/details"));
+    filterRow->addWidget(new QLabel(tr("Type:"), contentPage_));
+    filterRow->addWidget(typeFilter_);
+    filterRow->addWidget(new QLabel(tr("Search:"), contentPage_));
+    filterRow->addWidget(searchField_, 1);
+    layout->addLayout(filterRow);
 
     auto *summaryGrid = new QGridLayout();
     summaryGrid->setHorizontalSpacing(12);
     summaryGrid->setVerticalSpacing(6);
 
     auto makeSummaryRow = [&](int row, const QString &labelText, QLabel **valueLabel, const char *objectName) {
-        auto *label = new QLabel(labelText, central);
-        auto *value = new QLabel(QStringLiteral("0"), central);
+        auto *label = new QLabel(labelText, contentPage_);
+        auto *value = new QLabel(QStringLiteral("0"), contentPage_);
         value->setObjectName(QString::fromLatin1(objectName));
         summaryGrid->addWidget(label, row, 0);
         summaryGrid->addWidget(value, row, 1);
@@ -105,23 +141,9 @@ void MainWindow::buildUi()
 
     layout->addLayout(summaryGrid);
 
-    auto *filterRow = new QHBoxLayout();
-    filterRow->setSpacing(8);
-    typeFilter_ = new QComboBox(central);
-    typeFilter_->setObjectName(QStringLiteral("typeFilter"));
-    typeFilter_->addItems({tr("All"), tr("net_mismatch"), tr("device_mismatch")});
-    searchField_ = new QLineEdit(central);
-    searchField_->setObjectName(QStringLiteral("searchField"));
-    searchField_->setPlaceholderText(tr("Search object/details"));
-    filterRow->addWidget(new QLabel(tr("Type:"), central));
-    filterRow->addWidget(typeFilter_);
-    filterRow->addWidget(new QLabel(tr("Search:"), central));
-    filterRow->addWidget(searchField_, 1);
-    layout->addLayout(filterRow);
-
     proxyModel_->setSourceModel(diffModel_);
 
-    diffTable_ = new QTableView(central);
+    diffTable_ = new QTableView(contentPage_);
     diffTable_->setObjectName(QStringLiteral("diffTableView"));
     diffTable_->setModel(proxyModel_);
     diffTable_->horizontalHeader()->setStretchLastSection(true);
@@ -130,7 +152,9 @@ void MainWindow::buildUi()
 
     layout->addWidget(diffTable_, 1);
 
-    setCentralWidget(central);
+    stack_->addWidget(contentPage_);
+    stack_->setCurrentWidget(welcomePage_);
+    setCentralWidget(stack_);
 
     connect(typeFilter_, &QComboBox::currentTextChanged, this, [this](const QString &text) {
         proxyModel_->setTypeFilter(text);
@@ -138,6 +162,23 @@ void MainWindow::buildUi()
     connect(searchField_, &QLineEdit::textChanged, this, [this](const QString &text) {
         proxyModel_->setSearchTerm(text);
     });
+
+    connect(loadButton_, &QPushButton::clicked, this, [this]() {
+        const QString startDir = mostRecentFile().isEmpty()
+            ? QStringLiteral("./resources/fixtures")
+            : QFileInfo(mostRecentFile()).absolutePath();
+        const QString path = QFileDialog::getOpenFileName(this,
+                                                         tr("Open netgen JSON report"),
+                                                         startDir,
+                                                         tr("JSON files (*.json);;All files (*)"));
+        if (!path.isEmpty()) {
+            if (loadFile(path, true)) {
+                stack_->setCurrentWidget(contentPage_);
+            }
+        }
+    });
+
+    updateRecentButtons();
 }
 
 void MainWindow::buildMenus()
@@ -294,4 +335,15 @@ QString MainWindow::recentFilesPath() const
     const QString dir = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
     if (dir.isEmpty()) return {};
     return dir + QStringLiteral("/opensvs_recent.txt");
+}
+
+void MainWindow::updateRecentButtons()
+{
+    // No buttons to toggle (load recent removed); kept for future hook.
+}
+
+QString MainWindow::mostRecentFile() const
+{
+    if (recentFiles_.isEmpty()) return {};
+    return recentFiles_.front();
 }

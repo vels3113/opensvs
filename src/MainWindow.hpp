@@ -11,6 +11,8 @@ class QStatusBar;
 class QComboBox;
 class QLineEdit;
 class QMenu;
+class QStackedWidget;
+class QPushButton;
 
 #include "models/DiffEntryModel.hpp"
 #include "models/DiffFilterProxyModel.hpp"
@@ -39,6 +41,8 @@ private:
     void loadRecentFiles();
     void saveRecentFiles() const;
     QString recentFilesPath() const;
+    void updateRecentButtons();
+    QString mostRecentFile() const;
 
     DiffEntryModel *diffModel_{nullptr};
     DiffFilterProxyModel *proxyModel_{nullptr};
@@ -48,6 +52,10 @@ private:
     QMenu *recentMenu_{nullptr};
     QStringList recentFiles_;
     QStringList logLines_;
+    QStackedWidget *stack_{nullptr};
+    QWidget *contentPage_{nullptr};
+    QWidget *welcomePage_{nullptr};
+    QPushButton *loadButton_{nullptr};
     QLabel *deviceMismatchLabel_{nullptr};
     QLabel *netMismatchLabel_{nullptr};
     QLabel *totalDevicesLabel_{nullptr};
