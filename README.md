@@ -33,13 +33,13 @@ Pass extra args as needed, e.g.:
 ```bash
 ctest --test-dir build --output-on-failure
 ```
-### Smoke tests (headless/WSLg-friendly)
+### Smoke tests (headless)
 - Offscreen (no display):
   ```bash
-  ./smoke_offscreen.sh
+  ./tests/smoke_offscreen.sh
   ```
 - Force xcb (bypass Wayland warning):
   ```bash
-  ./smoke_xcb.sh
+  ./tests/smoke_xcb.sh
   ```
 These create a temporary XDG runtime dir and capture stdout/stderr to /tmp logs, then show the log contents.
