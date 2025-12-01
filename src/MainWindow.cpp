@@ -202,10 +202,8 @@ void MainWindow::buildMenus()
     rebuildRecentFilesMenu();
 
     ensureLogDock();
-    auto *logAction = new QAction(tr("View Log"), this);
-    connect(logAction, &QAction::triggered, this, [this]() { openLogDialog(); });
-    fileMenu->addAction(logAction);
-    fileMenu->addAction(logDock_->toggleViewAction());
+    auto *viewMenu = menuBar()->addMenu(tr("&View"));
+    viewMenu->addAction(logDock_->toggleViewAction());
 }
 
 void MainWindow::setSummary(int device, int net, int shorts, int opens, int totalDevices, int totalNets)
