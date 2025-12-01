@@ -1,6 +1,8 @@
 ## About
 OpenSVS is a desktop GUI for inspecting netgen JSON reports. It provides summary and a filterable table view for the reports.
 
+![image1](./resources/docs/main_window.png "OpenSVS with loaded report")
+
 ## Run
 ```bash
 # Launch with no file (blank summary)
