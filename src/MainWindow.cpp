@@ -23,6 +23,7 @@
 #include <QFile>
 #include <QTextStream>
 #include <QDir>
+#include <QCoreApplication>
 
 #include "models/DiffEntryModel.hpp"
 #include "models/DiffFilterProxyModel.hpp"
@@ -208,7 +209,10 @@ void MainWindow::buildMenus()
     auto *helpMenu = menuBar()->addMenu(tr("&Help"));
     auto *aboutAction = new QAction(tr("About OpenSVS"), this);
     connect(aboutAction, &QAction::triggered, this, [this]() {
-        QMessageBox::about(this, tr("About OpenSVS"), tr("OpenSVS Qt6 GUI for viewing netgen JSON reports."));
+        const QString text = tr("<b>OpenSVS</b><br>Version: %1<br>Qt: %2<br><br>Qt6 GUI for viewing netgen JSON reports.")
+                                .arg(QCoreApplication::applicationVersion())
+                                .arg(QLatin1String(qVersion()));
+        QMessageBox::about(this, tr("About OpenSVS"), text);
     });
     helpMenu->addAction(aboutAction);
 }
