@@ -13,6 +13,7 @@
 #include <QMessageBox>
 #include <QPlainTextEdit>
 #include <QPushButton>
+#include <QDockWidget>
 #include <QStatusBar>
 #include <QStackedWidget>
 #include <QTableView>
@@ -200,11 +201,11 @@ void MainWindow::buildMenus()
     recentMenu_ = fileMenu->addMenu(tr("Recent Files"));
     rebuildRecentFilesMenu();
 
+    ensureLogDock();
     auto *logAction = new QAction(tr("View Log"), this);
-    connect(logAction, &QAction::triggered, this, [this]() {
-        openLogDialog();
-    });
+    connect(logAction, &QAction::triggered, this, [this]() { openLogDialog(); });
     fileMenu->addAction(logAction);
+    fileMenu->addAction(logDock_->toggleViewAction());
 }
 
 void MainWindow::setSummary(int device, int net, int shorts, int opens, int totalDevices, int totalNets)
@@ -236,6 +237,7 @@ void MainWindow::logEvent(const QString &msg)
         logLines_.removeLast();
     }
     appendLogToDisk(stamped);
+    refreshLogView();
 }
 
 void MainWindow::appendLogToDisk(const QString &line)
@@ -273,15 +275,11 @@ void MainWindow::rebuildRecentFilesMenu()
 
 void MainWindow::openLogDialog()
 {
-    QDialog dlg(this);
-    dlg.setWindowTitle(tr("Session Log"));
-    auto *layout = new QVBoxLayout(&dlg);
-    auto *text = new QPlainTextEdit(&dlg);
-    text->setReadOnly(true);
-    text->setPlainText(logLines_.join('\n'));
-    layout->addWidget(text);
-    dlg.resize(500, 300);
-    dlg.exec();
+    ensureLogDock();
+    refreshLogView();
+    logDock_->show();
+    logDock_->raise();
+    logDock_->activateWindow();
 }
 
 QString MainWindow::logFilePath() const
@@ -346,4 +344,26 @@ QString MainWindow::mostRecentFile() const
 {
     if (recentFiles_.isEmpty()) return {};
     return recentFiles_.front();
+}
+
+void MainWindow::ensureLogDock()
+{
+    if (logDock_) return;
+    logDock_ = new QDockWidget(tr("Session Log"), this);
+    logDock_->setObjectName(QStringLiteral("logDock"));
+    logDock_->setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
+    logDock_->setAllowedAreas(Qt::AllDockWidgetAreas);
+    logView_ = new QPlainTextEdit(logDock_);
+    logView_->setReadOnly(true);
+    logDock_->setWidget(logView_);
+    addDockWidget(Qt::BottomDockWidgetArea, logDock_);
+    logDock_->hide();
+}
+
+void MainWindow::refreshLogView()
+{
+    if (logView_) {
+        logView_->setPlainText(logLines_.join('\n'));
+        logView_->moveCursor(QTextCursor::End);
+    }
 }
