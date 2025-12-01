@@ -204,6 +204,13 @@ void MainWindow::buildMenus()
     ensureLogDock();
     auto *viewMenu = menuBar()->addMenu(tr("&View"));
     viewMenu->addAction(logDock_->toggleViewAction());
+
+    auto *helpMenu = menuBar()->addMenu(tr("&Help"));
+    auto *aboutAction = new QAction(tr("About OpenSVS"), this);
+    connect(aboutAction, &QAction::triggered, this, [this]() {
+        QMessageBox::about(this, tr("About OpenSVS"), tr("OpenSVS Qt6 GUI for viewing netgen JSON reports."));
+    });
+    helpMenu->addAction(aboutAction);
 }
 
 void MainWindow::setSummary(int device, int net, int shorts, int opens, int totalDevices, int totalNets)
