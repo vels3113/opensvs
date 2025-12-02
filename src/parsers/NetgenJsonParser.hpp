@@ -9,7 +9,8 @@ public:
     enum class DiffType {
         Unknown,
         NetMismatch,
-        DeviceMismatch
+        DeviceMismatch,
+        PropertyMismatch
     };
 
     struct Summary {

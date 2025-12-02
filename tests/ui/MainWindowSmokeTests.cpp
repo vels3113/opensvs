@@ -33,7 +33,7 @@ void MainWindowSmokeTests::shows_welcome_and_populates_after_load()
     auto *table = window.findChild<QTableView*>(QStringLiteral("diffTableView"));
     QVERIFY(table);
     QVERIFY(table->model());
-    QCOMPARE(table->model()->rowCount(), 2);
+    QCOMPARE(table->model()->rowCount(), 16);
 
     auto devices_mismatches = window.findChild<QLabel*>(QStringLiteral("summary_device_mismatches"));
     auto nets_mismatches = window.findChild<QLabel*>(QStringLiteral("summary_net_mismatches"));
@@ -41,17 +41,17 @@ void MainWindowSmokeTests::shows_welcome_and_populates_after_load()
     auto totalNets = window.findChild<QLabel*>(QStringLiteral("summary_total_nets"));
     QVERIFY(devices_mismatches && nets_mismatches && totalDevices && totalNets);
 
-    QCOMPARE(devices_mismatches->text(), QStringLiteral("1"));
-    QCOMPARE(nets_mismatches->text(), QStringLiteral("1"));
-    QCOMPARE(totalDevices->text(), QStringLiteral("10"));
-    QCOMPARE(totalNets->text(), QStringLiteral("12"));
+    QCOMPARE(devices_mismatches->text(), QStringLiteral("0"));
+    QCOMPARE(nets_mismatches->text(), QStringLiteral("0"));
+    QCOMPARE(totalDevices->text(), QStringLiteral("4"));
+    QCOMPARE(totalNets->text(), QStringLiteral("5"));
 
     auto *typeFilter = window.findChild<QComboBox*>(QStringLiteral("typeFilter"));
     auto *searchField = window.findChild<QLineEdit*>(QStringLiteral("searchField"));
     QVERIFY(typeFilter && searchField);
 
     typeFilter->setCurrentText(QStringLiteral("device_mismatch"));
-    QCOMPARE(table->model()->rowCount(), 1);
+    QCOMPARE(table->model()->rowCount(), 0);
 
     searchField->setText(QStringLiteral("nope"));
     QCOMPARE(table->model()->rowCount(), 0);

@@ -1,0 +1,50 @@
+
+Subcircuit summary:
+Circuit 1: bufferA.spice                   |Circuit 2: bufferB.spice                   
+-------------------------------------------|-------------------------------------------
+pfet (2)                                   |pfet (2)                                   
+nfet (2)                                   |nfet (2)                                   
+Number of devices: 4                       |Number of devices: 4                       
+Number of nets: 5                          |Number of nets: 5                          
+---------------------------------------------------------------------------------------
+Netlists match uniquely with property errors.
+inverter:0/nfet:1001 vs. inverter:X1/nfet:XU2:
+Property ps in circuit1 has no matching property in circuit2
+inverter:0/nfet:1001 vs. inverter:X1/nfet:XU2:
+Property as in circuit1 has no matching property in circuit2
+inverter:0/nfet:1001 vs. inverter:X1/nfet:XU2:
+Property pd in circuit1 has no matching property in circuit2
+inverter:0/nfet:1001 vs. inverter:X1/nfet:XU2:
+Property ad in circuit1 has no matching property in circuit2
+inverter:1/nfet:1001 vs. inverter:X2/nfet:XU2:
+Property ps in circuit1 has no matching property in circuit2
+inverter:1/nfet:1001 vs. inverter:X2/nfet:XU2:
+Property as in circuit1 has no matching property in circuit2
+inverter:1/nfet:1001 vs. inverter:X2/nfet:XU2:
+Property pd in circuit1 has no matching property in circuit2
+inverter:1/nfet:1001 vs. inverter:X2/nfet:XU2:
+Property ad in circuit1 has no matching property in circuit2
+inverter:0/pfet:1000 vs. inverter:X1/pfet:XU1:
+Property ps in circuit1 has no matching property in circuit2
+inverter:0/pfet:1000 vs. inverter:X1/pfet:XU1:
+Property as in circuit1 has no matching property in circuit2
+inverter:0/pfet:1000 vs. inverter:X1/pfet:XU1:
+Property pd in circuit1 has no matching property in circuit2
+inverter:0/pfet:1000 vs. inverter:X1/pfet:XU1:
+Property ad in circuit1 has no matching property in circuit2
+inverter:1/pfet:1000 vs. inverter:X2/pfet:XU1:
+Property ps in circuit1 has no matching property in circuit2
+inverter:1/pfet:1000 vs. inverter:X2/pfet:XU1:
+Property as in circuit1 has no matching property in circuit2
+inverter:1/pfet:1000 vs. inverter:X2/pfet:XU1:
+Property pd in circuit1 has no matching property in circuit2
+inverter:1/pfet:1000 vs. inverter:X2/pfet:XU1:
+Property ad in circuit1 has no matching property in circuit2
+Cells have no pins;  pin matching not needed.
+Device classes bufferA.spice and bufferB.spice are equivalent.
+
+Final result: Circuits match uniquely.
+Property errors were found.
+
+The following cells had property errors:
+ bufferA.spice

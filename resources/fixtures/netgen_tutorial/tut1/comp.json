@@ -1,0 +1,107 @@
+[
+  {
+   "name": [
+      "bufferA.spice",
+      "bufferB.spice"
+   ],
+   "devices": [
+       [
+         ["pfet", 2],
+         ["nfet", 2 ]
+       ], [
+         ["pfet", 2 ],
+         ["nfet", 2 ]
+       ]
+   ],
+   "nets": [
+    5,
+    5
+   ],
+   "badnets": [
+   ],
+   "badelements": [
+   ],
+   "properties": [
+      [
+         [
+           "inverter:0/nfet:1001",
+           [
+             ["ps", "7.2e-6"],
+             ["as", "3.24e-12"],
+             ["pd", "7.2e-6"],
+             ["ad", "3.24e-12"]
+           ]
+         ],
+         [
+           "inverter:X1/nfet:XU2",
+           [
+             ["(no matching parameter)", "(no value)"],
+             ["(no matching parameter)", "(no value)"],
+             ["(no matching parameter)", "(no value)"],
+             ["(no matching parameter)", "(no value)"]
+           ]
+         ]
+      ],
+      [
+         [
+           "inverter:1/nfet:1001",
+           [
+             ["ps", "7.2e-6"],
+             ["as", "3.24e-12"],
+             ["pd", "7.2e-6"],
+             ["ad", "3.24e-12"]
+           ]
+         ],
+         [
+           "inverter:X2/nfet:XU2",
+           [
+             ["(no matching parameter)", "(no value)"],
+             ["(no matching parameter)", "(no value)"],
+             ["(no matching parameter)", "(no value)"],
+             ["(no matching parameter)", "(no value)"]
+           ]
+         ]
+      ],
+      [
+         [
+           "inverter:0/pfet:1000",
+           [
+             ["ps", "7.2e-6"],
+             ["as", "3.24e-12"],
+             ["pd", "7.2e-6"],
+             ["ad", "3.24e-12"]
+           ]
+         ],
+         [
+           "inverter:X1/pfet:XU1",
+           [
+             ["(no matching parameter)", "(no value)"],
+             ["(no matching parameter)", "(no value)"],
+             ["(no matching parameter)", "(no value)"],
+             ["(no matching parameter)", "(no value)"]
+           ]
+         ]
+      ],
+      [
+         [
+           "inverter:1/pfet:1000",
+           [
+             ["ps", "7.2e-6"],
+             ["as", "3.24e-12"],
+             ["pd", "7.2e-6"],
+             ["ad", "3.24e-12"]
+           ]
+         ],
+         [
+           "inverter:X2/pfet:XU1",
+           [
+             ["(no matching parameter)", "(no value)"],
+             ["(no matching parameter)", "(no value)"],
+             ["(no matching parameter)", "(no value)"],
+             ["(no matching parameter)", "(no value)"]
+           ]
+         ]
+      ]
+   ]
+  }
+]
