@@ -32,6 +32,10 @@
 #include "models/DiffFilterProxyModel.hpp"
 #include "parsers/NetgenJsonParser.hpp"
 
+namespace {
+const auto kDockStyle = QStringLiteral("QDockWidget { border: 1px solid #666; } QDockWidget::widget { border: 1px solid #666; }");
+}
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , diffModel_(new DiffEntryModel(this))
@@ -375,6 +379,7 @@ void MainWindow::ensureLogDock()
     logDock_->setObjectName(QStringLiteral("logDock"));
     logDock_->setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
     logDock_->setAllowedAreas(Qt::AllDockWidgetAreas);
+    logDock_->setStyleSheet(kDockStyle);
     logView_ = new QPlainTextEdit(logDock_);
     logView_->setReadOnly(true);
     logDock_->setWidget(logView_);
@@ -408,6 +413,7 @@ void MainWindow::ensureLvsDock()
     lvsDock_->setObjectName(QStringLiteral("lvsDock"));
     lvsDock_->setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
     lvsDock_->setAllowedAreas(Qt::AllDockWidgetAreas);
+    lvsDock_->setStyleSheet(kDockStyle);
 
     auto *container = new QWidget(lvsDock_);
     auto *vbox = new QVBoxLayout(container);
