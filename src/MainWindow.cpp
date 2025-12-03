@@ -202,6 +202,9 @@ void MainWindow::buildMenus()
     recentMenu_ = fileMenu->addMenu(tr("Recent Files"));
     rebuildRecentFilesMenu();
 
+    auto *runMenu = menuBar()->addMenu(tr("&Run"));
+    runMenu->addMenu(tr("LVS"));
+
     ensureLogDock();
     auto *viewMenu = menuBar()->addMenu(tr("&View"));
     viewMenu->addAction(logDock_->toggleViewAction());
