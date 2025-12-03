@@ -27,6 +27,7 @@
 #include <QTextStream>
 #include <QDir>
 #include <QCoreApplication>
+#include <QProcess>
 
 #include "models/DiffEntryModel.hpp"
 #include "models/DiffFilterProxyModel.hpp"
@@ -452,8 +453,49 @@ void MainWindow::ensureLvsDock()
     auto *buttons = new QDialogButtonBox(QDialogButtonBox::Cancel, container);
     auto *runButton = buttons->addButton(tr("Run"), QDialogButtonBox::AcceptRole);
     connect(buttons, &QDialogButtonBox::rejected, lvsDock_, &QDockWidget::hide);
-    connect(runButton, &QPushButton::clicked, []() {
-        // Placeholder: actual LVS invocation will be wired later.
+    connect(runButton, &QPushButton::clicked, this, [this]() {
+        if (!lvsLayoutEdit_ || !lvsSchematicEdit_ || !lvsRulesEdit_) return;
+
+        const QString layout = lvsLayoutEdit_->text().trimmed();
+        const QString schematic = lvsSchematicEdit_->text().trimmed();
+        const QString rules = lvsRulesEdit_->text().trimmed();
+
+        if (layout.isEmpty() || schematic.isEmpty() || rules.isEmpty()) {
+            QMessageBox::warning(this, tr("Missing input"), tr("Please provide layout, schematic, and rules files."));
+            return;
+        }
+
+        const QString timestamp = QDateTime::currentDateTime().toString(QStringLiteral("yyyyMMdd_hhmmss"));
+        const QString baseName = QStringLiteral("comp_%1").arg(timestamp);
+        const QString outPath = QDir::current().filePath(baseName + QStringLiteral(".out"));
+        const QString jsonPath = QDir::current().filePath(baseName + QStringLiteral(".json"));
+
+        QProcess proc(this);
+        QStringList args;
+        args << QStringLiteral("-batch") << QStringLiteral("lvs") << layout << schematic << rules << outPath << QStringLiteral("-json");
+        proc.start(QStringLiteral("netgen"), args);
+        if (!proc.waitForStarted()) {
+            QMessageBox::critical(this, tr("LVS failed to start"), tr("Could not start netgen process."));
+            return;
+        }
+        proc.waitForFinished(-1);
+        if (proc.exitStatus() != QProcess::NormalExit || proc.exitCode() != 0) {
+            QMessageBox::critical(this, tr("LVS failed"),
+                                  tr("netgen exited with code %1:\n%2")
+                                      .arg(proc.exitCode())
+                                      .arg(QString::fromLocal8Bit(proc.readAllStandardError())));
+            return;
+        }
+
+        if (!QFile::exists(jsonPath)) {
+            QMessageBox::critical(this, tr("Output missing"),
+                                  tr("Expected JSON output not found at %1").arg(jsonPath));
+            return;
+        }
+
+        if (loadFile(jsonPath, true) && stack_ && contentPage_) {
+            stack_->setCurrentWidget(contentPage_);
+        }
     });
     vbox->addWidget(buttons);
 
