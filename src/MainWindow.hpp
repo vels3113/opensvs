@@ -15,6 +15,7 @@ class QStackedWidget;
 class QPushButton;
 class QDockWidget;
 class QPlainTextEdit;
+class QLineEdit;
 
 #include "models/DiffEntryModel.hpp"
 #include "models/DiffFilterProxyModel.hpp"
@@ -47,6 +48,8 @@ private:
     QString mostRecentFile() const;
     void ensureLogDock();
     void refreshLogView();
+    void openLvsDialog();
+    void ensureLvsDock();
 
     DiffEntryModel *diffModel_{nullptr};
     DiffFilterProxyModel *proxyModel_{nullptr};
@@ -68,4 +71,8 @@ private:
     QLabel *opensLabel_{nullptr};
     QDockWidget *logDock_{nullptr};
     QPlainTextEdit *logView_{nullptr};
+    QDockWidget *lvsDock_{nullptr};
+    QLineEdit *lvsLayoutEdit_{nullptr};
+    QLineEdit *lvsSchematicEdit_{nullptr};
+    QLineEdit *lvsRulesEdit_{nullptr};
 };

@@ -7,6 +7,7 @@
 #include <QFileDialog>
 #include <QGridLayout>
 #include <QHeaderView>
+#include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMenuBar>
@@ -14,6 +15,8 @@
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QDockWidget>
+#include <QDialogButtonBox>
+#include <QFormLayout>
 #include <QStatusBar>
 #include <QStackedWidget>
 #include <QTableView>
@@ -39,6 +42,11 @@ MainWindow::MainWindow(QWidget *parent)
     loadRecentFiles();
     buildUi();
     buildMenus();
+    ensureLvsDock();
+    if (lvsDock_) {
+        lvsDock_->show();
+        lvsDock_->setFloating(false);
+    }
     showStatus(tr("Use File -> Open to load a JSON report."));
     logEvent(tr("Application started"));
 }
@@ -203,7 +211,9 @@ void MainWindow::buildMenus()
     rebuildRecentFilesMenu();
 
     auto *runMenu = menuBar()->addMenu(tr("&Run"));
-    runMenu->addMenu(tr("LVS"));
+    auto *lvsAction = new QAction(tr("LVS..."), this);
+    connect(lvsAction, &QAction::triggered, this, [this]() { openLvsDialog(); });
+    runMenu->addAction(lvsAction);
 
     ensureLogDock();
     auto *viewMenu = menuBar()->addMenu(tr("&View"));
@@ -378,4 +388,70 @@ void MainWindow::refreshLogView()
         logView_->setPlainText(logLines_.join('\n'));
         logView_->moveCursor(QTextCursor::End);
     }
+}
+
+void MainWindow::openLvsDialog()
+{
+    ensureLvsDock();
+    if (lvsDock_) {
+        lvsDock_->show();
+        lvsDock_->raise();
+        lvsDock_->activateWindow();
+    }
+}
+
+void MainWindow::ensureLvsDock()
+{
+    if (lvsDock_) return;
+
+    lvsDock_ = new QDockWidget(tr("LVS"), this);
+    lvsDock_->setObjectName(QStringLiteral("lvsDock"));
+    lvsDock_->setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
+    lvsDock_->setAllowedAreas(Qt::AllDockWidgetAreas);
+
+    auto *container = new QWidget(lvsDock_);
+    auto *vbox = new QVBoxLayout(container);
+    auto *form = new QFormLayout();
+
+    auto makePicker = [&](const QString &caption, QLineEdit **target) -> QWidget * {
+        auto *rowWidget = new QWidget(container);
+        auto *row = new QHBoxLayout(rowWidget);
+        row->setContentsMargins(0, 0, 0, 0);
+        auto *edit = new QLineEdit(rowWidget);
+        auto *browse = new QPushButton(tr("Browse..."), rowWidget);
+        row->addWidget(edit, 1);
+        row->addWidget(browse);
+        connect(browse, &QPushButton::clicked, this, [this, edit, caption]() {
+            const QString path = QFileDialog::getOpenFileName(this, caption, QStringLiteral("./resources/fixtures"));
+            if (!path.isEmpty()) {
+                edit->setText(path);
+            }
+        });
+        if (target) {
+            *target = edit;
+        }
+        return rowWidget;
+    };
+
+    auto *layoutRow = makePicker(tr("Select layout file"), &lvsLayoutEdit_);
+    auto *schematicRow = makePicker(tr("Select schematic file"), &lvsSchematicEdit_);
+    auto *rulesRow = makePicker(tr("Select rules file"), &lvsRulesEdit_);
+
+    form->addRow(tr("Layout file:"), layoutRow);
+    form->addRow(tr("Schematic file:"), schematicRow);
+    form->addRow(tr("Rules file:"), rulesRow);
+
+    vbox->addLayout(form);
+
+    auto *buttons = new QDialogButtonBox(QDialogButtonBox::Cancel, container);
+    auto *runButton = buttons->addButton(tr("Run"), QDialogButtonBox::AcceptRole);
+    connect(buttons, &QDialogButtonBox::rejected, lvsDock_, &QDockWidget::hide);
+    connect(runButton, &QPushButton::clicked, []() {
+        // Placeholder: actual LVS invocation will be wired later.
+    });
+    vbox->addWidget(buttons);
+
+    container->setLayout(vbox);
+    lvsDock_->setWidget(container);
+    addDockWidget(Qt::BottomDockWidgetArea, lvsDock_);
 }
