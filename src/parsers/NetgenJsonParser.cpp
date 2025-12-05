@@ -132,6 +132,8 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
         report.summary.opens += sub.summary.opens;
         report.summary.totalDevices += sub.summary.totalDevices;
         report.summary.totalNets += sub.summary.totalNets;
+        report.summary.layoutCell = sub.layoutCell;
+        report.summary.schematicCell = sub.schematicCell;
         report.subcircuits.push_back(sub);
     }
 

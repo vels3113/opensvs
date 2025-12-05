@@ -34,7 +34,7 @@ public:
 private:
     void buildUi();
     void buildMenus();
-    void setSummary(int device, int net, int shorts, int opens, int totalDevices, int totalNets);
+    void setSummary(int device, int net, int shorts, int opens, int totalDevices, int totalNets, const QString &layoutCell, const QString &schematicCell);
     void showStatus(const QString &msg);
     void logEvent(const QString &msg);
     void appendLogToDisk(const QString &line);
@@ -69,6 +69,8 @@ private:
     QLabel *totalNetsLabel_{nullptr};
     QLabel *shortsLabel_{nullptr};
     QLabel *opensLabel_{nullptr};
+    QLabel *layoutCellLabel_{nullptr};
+    QLabel *schematicCellLabel_{nullptr};
     QDockWidget *logDock_{nullptr};
     QPlainTextEdit *logView_{nullptr};
     QDockWidget *lvsDock_{nullptr};

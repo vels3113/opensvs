@@ -20,6 +20,8 @@ public:
         int opens = 0;
         int totalDevices = 0;
         int totalNets = 0;
+        QString layoutCell;
+        QString schematicCell;
     };
 
     struct DiffEntry {

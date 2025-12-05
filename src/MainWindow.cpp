@@ -74,7 +74,9 @@ bool MainWindow::loadFile(const QString &path, bool showError)
                report.summary.shorts,
                report.summary.opens,
                report.summary.totalDevices,
-               report.summary.totalNets);
+               report.summary.totalNets,
+               report.summary.layoutCell,
+               report.summary.schematicCell);
     const QString msg = tr("Loaded %1 diffs from %2").arg(report.subcircuits[0].diffs.size()).arg(path);
     showStatus(msg);
     logEvent(msg);
@@ -136,13 +138,14 @@ void MainWindow::buildUi()
         *valueLabel = value;
     };
 
-    makeSummaryRow(0, tr("Device mismatches:"), &deviceMismatchLabel_, "summary_device_mismatches");
-    makeSummaryRow(1, tr("Net mismatches:"), &netMismatchLabel_, "summary_net_mismatches");
-    makeSummaryRow(2, tr("Shorts:"), &shortsLabel_, "summary_shorts");
-    makeSummaryRow(3, tr("Opens:"), &opensLabel_, "summary_opens");
-    makeSummaryRow(4, tr("Total devices:"), &totalDevicesLabel_, "summary_total_devices");
-    makeSummaryRow(5, tr("Total nets:"), &totalNetsLabel_, "summary_total_nets");
-
+    makeSummaryRow(0, tr("Layout cell:"), &layoutCellLabel_, "summary_layout_cell");
+    makeSummaryRow(1, tr("Schematic cell:"), &schematicCellLabel_, "summary_schematic_cell");
+    makeSummaryRow(2, tr("Device mismatches:"), &deviceMismatchLabel_, "summary_device_mismatches");
+    makeSummaryRow(3, tr("Net mismatches:"), &netMismatchLabel_, "summary_net_mismatches");
+    makeSummaryRow(4, tr("Shorts:"), &shortsLabel_, "summary_shorts");
+    makeSummaryRow(5, tr("Opens:"), &opensLabel_, "summary_opens");
+    makeSummaryRow(6, tr("Total devices:"), &totalDevicesLabel_, "summary_total_devices");
+    makeSummaryRow(7, tr("Total nets:"), &totalNetsLabel_, "summary_total_nets");
     layout->addLayout(summaryGrid);
 
     typeFilter_ = new QComboBox(contentPage_);
@@ -236,8 +239,10 @@ void MainWindow::buildMenus()
     helpMenu->addAction(aboutAction);
 }
 
-void MainWindow::setSummary(int device, int net, int shorts, int opens, int totalDevices, int totalNets)
+void MainWindow::setSummary(int device, int net, int shorts, int opens, int totalDevices, int totalNets, const QString &layoutCell, const QString &schematicCell)
 {
+    if (layoutCellLabel_) layoutCellLabel_->setText(layoutCell);
+    if (schematicCellLabel_) schematicCellLabel_->setText(schematicCell);
     deviceMismatchLabel_->setText(QString::number(device));
     netMismatchLabel_->setText(QString::number(net));
     shortsLabel_->setText(QString::number(shorts));

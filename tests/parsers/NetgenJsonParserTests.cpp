@@ -30,9 +30,13 @@ void NetgenJsonParserTests::parses_sample_fixture()
     QCOMPARE(report.summary.opens, 0);
     QCOMPARE(report.summary.totalDevices, 4);
     QCOMPARE(report.summary.totalNets, 5);
+    QCOMPARE(report.summary.layoutCell, QStringLiteral("bufferA.spice"));
+    QCOMPARE(report.summary.schematicCell, QStringLiteral("bufferB.spice"));
 
     QCOMPARE(sub.summary.totalDevices, 4);
     QCOMPARE(sub.summary.totalNets, 5);
+    QCOMPARE(sub.layoutCell, QStringLiteral("bufferA.spice"));
+    QCOMPARE(sub.schematicCell, QStringLiteral("bufferB.spice"));
 
     QCOMPARE(sub.diffs.size(), 16);
     QCOMPARE(sub.diffs[0].type, NetgenJsonParser::DiffType::PropertyMismatch);
