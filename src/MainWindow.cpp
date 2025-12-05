@@ -122,18 +122,7 @@ void MainWindow::buildUi()
 
     auto *filterRow = new QHBoxLayout();
     filterRow->setSpacing(8);
-    typeFilter_ = new QComboBox(contentPage_);
-    typeFilter_->setObjectName(QStringLiteral("typeFilter"));
-    typeFilter_->addItems({tr("All"), tr("net_mismatch"), tr("device_mismatch")});
-    searchField_ = new QLineEdit(contentPage_);
-    searchField_->setObjectName(QStringLiteral("searchField"));
-    searchField_->setPlaceholderText(tr("Search object/details"));
-    filterRow->addWidget(new QLabel(tr("Type:"), contentPage_));
-    filterRow->addWidget(typeFilter_);
-    filterRow->addWidget(new QLabel(tr("Search:"), contentPage_));
-    filterRow->addWidget(searchField_, 1);
-    layout->addLayout(filterRow);
-
+    
     auto *summaryGrid = new QGridLayout();
     summaryGrid->setHorizontalSpacing(12);
     summaryGrid->setVerticalSpacing(6);
@@ -155,6 +144,18 @@ void MainWindow::buildUi()
     makeSummaryRow(5, tr("Total nets:"), &totalNetsLabel_, "summary_total_nets");
 
     layout->addLayout(summaryGrid);
+
+    typeFilter_ = new QComboBox(contentPage_);
+    typeFilter_->setObjectName(QStringLiteral("typeFilter"));
+    typeFilter_->addItems({tr("All"), tr("net_mismatch"), tr("device_mismatch")});
+    searchField_ = new QLineEdit(contentPage_);
+    searchField_->setObjectName(QStringLiteral("searchField"));
+    searchField_->setPlaceholderText(tr("Search object/details"));
+    filterRow->addWidget(new QLabel(tr("Type:"), contentPage_));
+    filterRow->addWidget(typeFilter_);
+    filterRow->addWidget(new QLabel(tr("Search:"), contentPage_));
+    filterRow->addWidget(searchField_, 1);
+    layout->addLayout(filterRow);
 
     proxyModel_->setSourceModel(diffModel_);
 
