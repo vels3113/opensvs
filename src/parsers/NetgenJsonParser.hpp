@@ -34,7 +34,13 @@ public:
         bool ok = false;
         QString error;
         Summary summary;
-        QVector<DiffEntry> diffs;
+        struct Subcircuit {
+            Summary summary;
+            QString layoutCell;
+            QString schematicCell;
+            QVector<DiffEntry> diffs;
+        };
+        QVector<Subcircuit> subcircuits;
     };
 
     Report parseFile(const QString &path) const;
