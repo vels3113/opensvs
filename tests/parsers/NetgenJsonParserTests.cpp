@@ -39,6 +39,7 @@ void NetgenJsonParserTests::parses_sample_fixture()
     QCOMPARE(sub.schematicCell, QStringLiteral("bufferB.spice"));
     QCOMPARE(sub.devicesA, QStringList({"pfet", "nfet"}));
     QCOMPARE(sub.devicesB, QStringList({"pfet", "nfet"}));
+    QCOMPARE(sub.subcircuits.size(), 0);
 
     QCOMPARE(sub.diffs.size(), 16);
     QCOMPARE(sub.diffs[0].type, NetgenJsonParser::DiffType::PropertyMismatch);

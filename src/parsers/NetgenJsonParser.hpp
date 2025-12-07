@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QHash>
 #include <QString>
 #include <QVector>
 
@@ -43,7 +44,7 @@ public:
             QStringList devicesA;
             QStringList devicesB;
             QVector<DiffEntry> diffs;
-            QVector<Circuit> subcircuits;
+            QHash<QString, Circuit*> subcircuits;
         };
         QVector<Circuit> circuits;
     };

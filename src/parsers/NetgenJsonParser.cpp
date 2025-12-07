@@ -52,6 +52,7 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
         return report;
     }
 
+    report.circuits.reserve(arr.size());
     for (const QJsonValue &rootVal : arr) {
         if (!rootVal.isObject()) continue;
         const QJsonObject rootObj = rootVal.toObject();
@@ -141,6 +142,32 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
         report.summary.layoutCell = sub.layoutCell;
         report.summary.schematicCell = sub.schematicCell;
         report.circuits.push_back(sub);
+    }
+
+    // Build lookup maps
+    QHash<QString, Report::Circuit*> layoutMap;
+    QHash<QString, Report::Circuit*> schematicMap;
+    for (auto &circuit : report.circuits) {
+        layoutMap.insert(circuit.layoutCell, &circuit);
+        schematicMap.insert(circuit.schematicCell, &circuit);
+    }
+
+    // Build parent-child links based on device list references
+    for (auto &parent : report.circuits) {
+        auto linkChild = [&](const QString &name) {
+            if (name.isEmpty()) return;
+            if (!parent.subcircuits.contains(name)) {
+                Report::Circuit *child = layoutMap.value(name, nullptr);
+                if (!child) child = schematicMap.value(name, nullptr);
+                if (child && child != &parent) {
+                    parent.subcircuits.insert(name, child);
+                }
+            }
+        };
+
+        for (const QString &name : parent.devicesA) {
+            linkChild(name);
+        }
     }
 
     report.ok = true;
