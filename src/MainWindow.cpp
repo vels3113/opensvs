@@ -67,7 +67,7 @@ bool MainWindow::loadFile(const QString &path, bool showError)
         return false;
     }
 
-    diffModel_->setDiffs(report.subcircuits[0].diffs);
+    diffModel_->setDiffs(report.circuits[0].diffs);
     proxyModel_->invalidate();
     setSummary(report.summary.deviceMismatches,
                report.summary.netMismatches,
@@ -77,7 +77,7 @@ bool MainWindow::loadFile(const QString &path, bool showError)
                report.summary.totalNets,
                report.summary.layoutCell,
                report.summary.schematicCell);
-    const QString msg = tr("Loaded %1 diffs from %2").arg(report.subcircuits[0].diffs.size()).arg(path);
+    const QString msg = tr("Loaded %1 diffs from %2").arg(report.circuits[0].diffs.size()).arg(path);
     showStatus(msg);
     logEvent(msg);
 

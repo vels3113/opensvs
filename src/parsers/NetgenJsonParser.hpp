@@ -36,13 +36,16 @@ public:
         bool ok = false;
         QString error;
         Summary summary;
-        struct Subcircuit {
+        struct Circuit {
             Summary summary;
             QString layoutCell;
             QString schematicCell;
+            QStringList devicesA;
+            QStringList devicesB;
             QVector<DiffEntry> diffs;
+            QVector<Circuit> subcircuits;
         };
-        QVector<Subcircuit> subcircuits;
+        QVector<Circuit> circuits;
     };
 
     Report parseFile(const QString &path) const;

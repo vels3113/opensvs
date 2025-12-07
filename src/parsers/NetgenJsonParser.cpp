@@ -55,7 +55,7 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
     for (const QJsonValue &rootVal : arr) {
         if (!rootVal.isObject()) continue;
         const QJsonObject rootObj = rootVal.toObject();
-        Report::Subcircuit sub;
+        Report::Circuit sub;
 
         const QJsonArray netsArr = rootObj.value(QStringLiteral("nets")).toArray();
         if (!netsArr.isEmpty()) {
@@ -72,6 +72,9 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
                 if (devVal.isArray()) {
                     const QJsonArray pair = devVal.toArray();
                     if (pair.size() > 1) {
+                        if (pair.at(0).isString()) {
+                            sub.devicesA.append(pair.at(0).toString());
+                        }
                         total += pair.at(1).toInt(0);
                     }
                 }
@@ -83,6 +86,9 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
                     if (devVal.isArray()) {
                         const QJsonArray pair = devVal.toArray();
                         if (pair.size() > 1) {
+                            if (pair.at(0).isString()) {
+                                sub.devicesB.append(pair.at(0).toString());
+                            }
                             totalB += pair.at(1).toInt(0);
                         }
                     }
@@ -134,7 +140,7 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
         report.summary.totalNets += sub.summary.totalNets;
         report.summary.layoutCell = sub.layoutCell;
         report.summary.schematicCell = sub.schematicCell;
-        report.subcircuits.push_back(sub);
+        report.circuits.push_back(sub);
     }
 
     report.ok = true;
