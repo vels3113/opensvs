@@ -53,10 +53,12 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
     }
 
     report.circuits.reserve(arr.size());
+    int circuitIdx = 0;
     for (const QJsonValue &rootVal : arr) {
         if (!rootVal.isObject()) continue;
         const QJsonObject rootObj = rootVal.toObject();
         Report::Circuit sub;
+        sub.index = circuitIdx;
 
         const QJsonArray netsArr = rootObj.value(QStringLiteral("nets")).toArray();
         if (!netsArr.isEmpty()) {
@@ -129,6 +131,7 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
                 entry.layoutCell = sub.layoutCell;
                 entry.schematicCell = sub.schematicCell;
                 entry.details = QStringLiteral("%1: %2 vs %3").arg(param, valA, valB);
+                entry.circuitIndex = circuitIdx;
                 sub.diffs.push_back(entry);
             }
         }
@@ -142,14 +145,15 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
         report.summary.layoutCell = sub.layoutCell;
         report.summary.schematicCell = sub.schematicCell;
         report.circuits.push_back(sub);
+        ++circuitIdx;
     }
 
     // Build lookup maps
     QHash<QString, Report::Circuit*> layoutMap;
     QHash<QString, Report::Circuit*> schematicMap;
     for (auto &circuit : report.circuits) {
-        layoutMap.insert(circuit.layoutCell, &circuit);
-        schematicMap.insert(circuit.schematicCell, &circuit);
+        if (!circuit.layoutCell.isEmpty()) layoutMap.insert(circuit.layoutCell, &circuit);
+        if (!circuit.schematicCell.isEmpty()) schematicMap.insert(circuit.schematicCell, &circuit);
     }
 
     // Build parent-child links based on device list references

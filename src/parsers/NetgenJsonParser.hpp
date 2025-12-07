@@ -31,6 +31,7 @@ public:
         QString layoutCell;
         QString schematicCell;
         QString details;
+        int circuitIndex = -1;
     };
 
     struct Report {
@@ -44,7 +45,9 @@ public:
             QStringList devicesA;
             QStringList devicesB;
             QVector<DiffEntry> diffs;
+            bool isTopLevel{true};
             QHash<QString, Circuit*> subcircuits;
+            int index = -1;
         };
         QVector<Circuit> circuits;
     };

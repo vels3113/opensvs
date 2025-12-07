@@ -8,6 +8,8 @@ add_executable(opensvs
     models/DiffEntryModel.hpp
     models/DiffFilterProxyModel.cpp
     models/DiffFilterProxyModel.hpp
+    models/CircuitTreeModel.cpp
+    models/CircuitTreeModel.hpp
 )
 
 target_include_directories(opensvs PRIVATE

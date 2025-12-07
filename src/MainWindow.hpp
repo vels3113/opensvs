@@ -16,9 +16,11 @@ class QPushButton;
 class QDockWidget;
 class QPlainTextEdit;
 class QLineEdit;
+class QTreeView;
 
 #include "models/DiffEntryModel.hpp"
 #include "models/DiffFilterProxyModel.hpp"
+#include "models/CircuitTreeModel.hpp"
 #include "parsers/NetgenJsonParser.hpp"
 
 
@@ -50,10 +52,13 @@ private:
     void refreshLogView();
     void openLvsDialog();
     void ensureLvsDock();
+    void applyCircuitFilter(const QModelIndex &index);
 
     DiffEntryModel *diffModel_{nullptr};
     DiffFilterProxyModel *proxyModel_{nullptr};
+    CircuitTreeModel *circuitTreeModel_{nullptr};
     QTableView *diffTable_{nullptr};
+    QTreeView *circuitTree_{nullptr};
     QComboBox *typeFilter_{nullptr};
     QLineEdit *searchField_{nullptr};
     QMenu *recentMenu_{nullptr};
@@ -77,4 +82,5 @@ private:
     QLineEdit *lvsLayoutEdit_{nullptr};
     QLineEdit *lvsSchematicEdit_{nullptr};
     QLineEdit *lvsRulesEdit_{nullptr};
+    QVector<NetgenJsonParser::Report::Circuit> circuits_;
 };

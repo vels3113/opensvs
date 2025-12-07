@@ -24,7 +24,7 @@ int DiffEntryModel::columnCount(const QModelIndex &parent) const
 
 QVariant DiffEntryModel::data(const QModelIndex &index, int role) const
 {
-    if (!index.isValid() || role != Qt::DisplayRole) {
+    if (!index.isValid()) {
         return {};
     }
     if (index.row() < 0 || index.row() >= diffs_.size()) {
@@ -32,6 +32,12 @@ QVariant DiffEntryModel::data(const QModelIndex &index, int role) const
     }
 
     const auto &entry = diffs_.at(index.row());
+    if (role == Qt::UserRole) {
+        return entry.circuitIndex;
+    }
+    if (role != Qt::DisplayRole) {
+        return {};
+    }
     switch (index.column()) {
     case DiffEntryColumns::TYPE:
         return NetgenJsonParser::toTypeString(entry.type);
