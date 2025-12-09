@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QHash>
 #include <QString>
 #include <QVector>
 
@@ -20,6 +21,8 @@ public:
         int opens = 0;
         int totalDevices = 0;
         int totalNets = 0;
+        QString layoutCell;
+        QString schematicCell;
     };
 
     struct DiffEntry {
@@ -28,13 +31,25 @@ public:
         QString layoutCell;
         QString schematicCell;
         QString details;
+        int circuitIndex = -1;
     };
 
     struct Report {
         bool ok = false;
         QString error;
         Summary summary;
-        QVector<DiffEntry> diffs;
+        struct Circuit {
+            Summary summary;
+            QString layoutCell;
+            QString schematicCell;
+            QStringList devicesA;
+            QStringList devicesB;
+            QVector<DiffEntry> diffs;
+            bool isTopLevel{true};
+            QHash<QString, Circuit*> subcircuits;
+            int index = -1;
+        };
+        QVector<Circuit> circuits;
     };
 
     Report parseFile(const QString &path) const;

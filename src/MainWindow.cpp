@@ -14,6 +14,7 @@
 #include <QMessageBox>
 #include <QPlainTextEdit>
 #include <QPushButton>
+#include <QTreeView>
 #include <QDockWidget>
 #include <QDialogButtonBox>
 #include <QFormLayout>
@@ -28,9 +29,12 @@
 #include <QDir>
 #include <QCoreApplication>
 #include <QProcess>
+#include <QSet>
+#include <functional>
 
 #include "models/DiffEntryModel.hpp"
 #include "models/DiffFilterProxyModel.hpp"
+#include "models/CircuitTreeModel.hpp"
 #include "parsers/NetgenJsonParser.hpp"
 
 namespace {
@@ -41,6 +45,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , diffModel_(new DiffEntryModel(this))
     , proxyModel_(new DiffFilterProxyModel(this))
+    , circuitTreeModel_(new CircuitTreeModel(this))
 {
     setWindowTitle(tr("OpenSVS"));
     setMinimumSize(800, 600);
@@ -67,15 +72,32 @@ bool MainWindow::loadFile(const QString &path, bool showError)
         return false;
     }
 
-    diffModel_->setDiffs(report.diffs);
+    circuits_ = std::move(report.circuits);
+    circuitTreeModel_->setCircuits(&circuits_);
+    if (circuitTree_ && circuitTreeModel_->rowCount() > 0) {
+        const QModelIndex rootIndex = circuitTreeModel_->index(0, 0);
+        circuitTree_->setCurrentIndex(rootIndex);
+        applyCircuitFilter(rootIndex);
+    } else {
+        proxyModel_->setAllowedCircuits({});
+    }
+
+    QVector<NetgenJsonParser::DiffEntry> allDiffs;
+    for (const auto &c : circuits_) {
+        allDiffs += c.diffs;
+    }
+
+    diffModel_->setDiffs(allDiffs);
     proxyModel_->invalidate();
     setSummary(report.summary.deviceMismatches,
                report.summary.netMismatches,
                report.summary.shorts,
                report.summary.opens,
                report.summary.totalDevices,
-               report.summary.totalNets);
-    const QString msg = tr("Loaded %1 diffs from %2").arg(report.diffs.size()).arg(path);
+               report.summary.totalNets,
+               report.summary.layoutCell,
+               report.summary.schematicCell);
+    const QString msg = tr("Loaded %1 diffs from %2").arg(allDiffs.size()).arg(path);
     showStatus(msg);
     logEvent(msg);
 
@@ -122,18 +144,7 @@ void MainWindow::buildUi()
 
     auto *filterRow = new QHBoxLayout();
     filterRow->setSpacing(8);
-    typeFilter_ = new QComboBox(contentPage_);
-    typeFilter_->setObjectName(QStringLiteral("typeFilter"));
-    typeFilter_->addItems({tr("All"), tr("net_mismatch"), tr("device_mismatch")});
-    searchField_ = new QLineEdit(contentPage_);
-    searchField_->setObjectName(QStringLiteral("searchField"));
-    searchField_->setPlaceholderText(tr("Search object/details"));
-    filterRow->addWidget(new QLabel(tr("Type:"), contentPage_));
-    filterRow->addWidget(typeFilter_);
-    filterRow->addWidget(new QLabel(tr("Search:"), contentPage_));
-    filterRow->addWidget(searchField_, 1);
-    layout->addLayout(filterRow);
-
+    
     auto *summaryGrid = new QGridLayout();
     summaryGrid->setHorizontalSpacing(12);
     summaryGrid->setVerticalSpacing(6);
@@ -147,14 +158,30 @@ void MainWindow::buildUi()
         *valueLabel = value;
     };
 
-    makeSummaryRow(0, tr("Device mismatches:"), &deviceMismatchLabel_, "summary_device_mismatches");
-    makeSummaryRow(1, tr("Net mismatches:"), &netMismatchLabel_, "summary_net_mismatches");
-    makeSummaryRow(2, tr("Shorts:"), &shortsLabel_, "summary_shorts");
-    makeSummaryRow(3, tr("Opens:"), &opensLabel_, "summary_opens");
-    makeSummaryRow(4, tr("Total devices:"), &totalDevicesLabel_, "summary_total_devices");
-    makeSummaryRow(5, tr("Total nets:"), &totalNetsLabel_, "summary_total_nets");
-
+    makeSummaryRow(0, tr("Layout cell:"), &layoutCellLabel_, "summary_layout_cell");
+    makeSummaryRow(1, tr("Schematic cell:"), &schematicCellLabel_, "summary_schematic_cell");
+    makeSummaryRow(2, tr("Device mismatches:"), &deviceMismatchLabel_, "summary_device_mismatches");
+    makeSummaryRow(3, tr("Net mismatches:"), &netMismatchLabel_, "summary_net_mismatches");
+    makeSummaryRow(4, tr("Shorts:"), &shortsLabel_, "summary_shorts");
+    makeSummaryRow(5, tr("Opens:"), &opensLabel_, "summary_opens");
+    makeSummaryRow(6, tr("Total devices:"), &totalDevicesLabel_, "summary_total_devices");
+    makeSummaryRow(7, tr("Total nets:"), &totalNetsLabel_, "summary_total_nets");
     layout->addLayout(summaryGrid);
+
+    typeFilter_ = new QComboBox(contentPage_);
+    typeFilter_->setObjectName(QStringLiteral("typeFilter"));
+    typeFilter_->addItems({tr("All"),
+                           tr("net_mismatch"),
+                           tr("device_mismatch"),
+                           tr("property_mismatch")});
+    searchField_ = new QLineEdit(contentPage_);
+    searchField_->setObjectName(QStringLiteral("searchField"));
+    searchField_->setPlaceholderText(tr("Search object/details"));
+    filterRow->addWidget(new QLabel(tr("Type:"), contentPage_));
+    filterRow->addWidget(typeFilter_);
+    filterRow->addWidget(new QLabel(tr("Search:"), contentPage_));
+    filterRow->addWidget(searchField_, 1);
+    layout->addLayout(filterRow);
 
     proxyModel_->setSourceModel(diffModel_);
 
@@ -165,7 +192,22 @@ void MainWindow::buildUi()
     diffTable_->setSelectionBehavior(QAbstractItemView::SelectRows);
     diffTable_->setSelectionMode(QAbstractItemView::SingleSelection);
 
-    layout->addWidget(diffTable_, 1);
+    circuitTree_ = new QTreeView(contentPage_);
+    circuitTree_->setObjectName(QStringLiteral("circuitTree"));
+    circuitTree_->setHeaderHidden(true);
+    circuitTree_->setMinimumWidth(200);
+    circuitTree_->setModel(circuitTreeModel_);
+    circuitTree_->setExpandsOnDoubleClick(true);
+    circuitTree_->collapseAll();
+    connect(circuitTree_->selectionModel(), &QItemSelectionModel::currentChanged, this, &MainWindow::applyCircuitFilter);
+
+    auto *tableRow = new QHBoxLayout();
+    tableRow->setContentsMargins(0, 0, 0, 0);
+    tableRow->setSpacing(8);
+    tableRow->addWidget(circuitTree_, 0);
+    tableRow->addWidget(diffTable_, 1);
+
+    layout->addLayout(tableRow);
 
     stack_->addWidget(contentPage_);
     stack_->setCurrentWidget(welcomePage_);
@@ -235,8 +277,10 @@ void MainWindow::buildMenus()
     helpMenu->addAction(aboutAction);
 }
 
-void MainWindow::setSummary(int device, int net, int shorts, int opens, int totalDevices, int totalNets)
+void MainWindow::setSummary(int device, int net, int shorts, int opens, int totalDevices, int totalNets, const QString &layoutCell, const QString &schematicCell)
 {
+    if (layoutCellLabel_) layoutCellLabel_->setText(layoutCell);
+    if (schematicCellLabel_) schematicCellLabel_->setText(schematicCell);
     deviceMismatchLabel_->setText(QString::number(device));
     netMismatchLabel_->setText(QString::number(net));
     shortsLabel_->setText(QString::number(shorts));
@@ -394,6 +438,28 @@ void MainWindow::refreshLogView()
         logView_->setPlainText(logLines_.join('\n'));
         logView_->moveCursor(QTextCursor::End);
     }
+}
+
+void MainWindow::applyCircuitFilter(const QModelIndex &index)
+{
+    if (!circuitTreeModel_ || !proxyModel_) return;
+
+    QSet<int> allowed;
+    auto gather = [&](auto &&self, NetgenJsonParser::Report::Circuit *circuit) -> void {
+        if (!circuit) return;
+        if (circuit->index >= 0) allowed.insert(circuit->index);
+        for (auto *child : circuit->subcircuits) {
+            self(self, child);
+        }
+    };
+
+    NetgenJsonParser::Report::Circuit *c = circuitTreeModel_->circuitForIndex(index);
+    if (c) {
+        gather(gather, c);
+    } else {
+        allowed.clear();
+    }
+    proxyModel_->setAllowedCircuits(allowed);
 }
 
 void MainWindow::openLvsDialog()

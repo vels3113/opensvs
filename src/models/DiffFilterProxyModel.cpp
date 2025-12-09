@@ -29,20 +29,32 @@ void DiffFilterProxyModel::setSearchTerm(const QString &term)
     invalidateFilter();
 }
 
+void DiffFilterProxyModel::setAllowedCircuits(const QSet<int> &circuits)
+{
+    circuitFilter_ = circuits;
+    invalidateFilter();
+}
+
 bool DiffFilterProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const
 {
     const QModelIndex typeIdx = sourceModel()->index(source_row, DiffEntryColumns::TYPE, source_parent);
     const QModelIndex objIdx = sourceModel()->index(source_row, DiffEntryColumns::OBJECT, source_parent);
     const QModelIndex detailsIdx = sourceModel()->index(source_row, DiffEntryColumns::DETAILS, source_parent);
+    const QModelIndex circuitIdx = sourceModel()->index(source_row, 0, source_parent);
 
     const QString type = sourceModel()->data(typeIdx, Qt::DisplayRole).toString();
     const QString object = sourceModel()->data(objIdx, Qt::DisplayRole).toString();
     const QString details = sourceModel()->data(detailsIdx, Qt::DisplayRole).toString();
+    const int circuitId = sourceModel()->data(circuitIdx, Qt::UserRole).toInt();
 
     if (!typeFilter_.isEmpty() && typeFilter_.compare(QStringLiteral("All"), Qt::CaseInsensitive) != 0) {
         if (type.compare(typeFilter_, Qt::CaseInsensitive)) {
             return false;
         }
+    }
+
+    if (!circuitFilter_.isEmpty() && !circuitFilter_.contains(circuitId)) {
+        return false;
     }
 
     if (!searchTerm_.isEmpty()) {

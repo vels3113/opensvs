@@ -21,21 +21,34 @@ void NetgenJsonParserTests::parses_sample_fixture()
     auto report = parser.parseFile(fixturePath);
     QVERIFY2(report.ok, qPrintable(QStringLiteral("Expected ok parse, got error: %1").arg(report.error)));
 
+    QCOMPARE(report.circuits.size(), 1);
+    const auto &sub = report.circuits.first();
+
     QCOMPARE(report.summary.deviceMismatches, 0);
     QCOMPARE(report.summary.netMismatches, 0);
     QCOMPARE(report.summary.shorts, 0);
     QCOMPARE(report.summary.opens, 0);
     QCOMPARE(report.summary.totalDevices, 4);
     QCOMPARE(report.summary.totalNets, 5);
+    QCOMPARE(report.summary.layoutCell, QStringLiteral("bufferA.spice"));
+    QCOMPARE(report.summary.schematicCell, QStringLiteral("bufferB.spice"));
 
-    QCOMPARE(report.diffs.size(), 16);
-    QCOMPARE(report.diffs[0].type, NetgenJsonParser::DiffType::PropertyMismatch);
-    QCOMPARE(report.diffs[0].name, QStringLiteral("inverter:0/nfet:1001"));
-    QCOMPARE(report.diffs[0].layoutCell, QStringLiteral("bufferA.spice"));
-    QCOMPARE(report.diffs[0].schematicCell, QStringLiteral("bufferB.spice"));
-    QVERIFY(report.diffs[0].details.contains(QStringLiteral("ps")));
-    QVERIFY(report.diffs[0].details.contains(QStringLiteral("7.2e-6")));
-    QVERIFY(report.diffs[0].details.contains(QStringLiteral("(no value)")));
+    QCOMPARE(sub.summary.totalDevices, 4);
+    QCOMPARE(sub.summary.totalNets, 5);
+    QCOMPARE(sub.layoutCell, QStringLiteral("bufferA.spice"));
+    QCOMPARE(sub.schematicCell, QStringLiteral("bufferB.spice"));
+    QCOMPARE(sub.devicesA, QStringList({"pfet", "nfet"}));
+    QCOMPARE(sub.devicesB, QStringList({"pfet", "nfet"}));
+    QCOMPARE(sub.subcircuits.size(), 0);
+
+    QCOMPARE(sub.diffs.size(), 16);
+    QCOMPARE(sub.diffs[0].type, NetgenJsonParser::DiffType::PropertyMismatch);
+    QCOMPARE(sub.diffs[0].name, QStringLiteral("inverter:0/nfet:1001"));
+    QCOMPARE(sub.diffs[0].layoutCell, QStringLiteral("bufferA.spice"));
+    QCOMPARE(sub.diffs[0].schematicCell, QStringLiteral("bufferB.spice"));
+    QVERIFY(sub.diffs[0].details.contains(QStringLiteral("ps")));
+    QVERIFY(sub.diffs[0].details.contains(QStringLiteral("7.2e-6")));
+    QVERIFY(sub.diffs[0].details.contains(QStringLiteral("(no value)")));
 }
 
 void NetgenJsonParserTests::fails_on_invalid_json()

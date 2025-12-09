@@ -45,11 +45,29 @@ add_test(NAME difffilter_model_tests
     COMMAND ${CMAKE_COMMAND} -E env QT_QPA_PLATFORM=offscreen XDG_RUNTIME_DIR=/tmp ${CMAKE_BINARY_DIR}/tests/difffilter_model_tests
 )
 
+add_executable(circuit_tree_model_tests
+    models/CircuitTreeModelTests.cpp
+    ${CMAKE_SOURCE_DIR}/src/models/CircuitTreeModel.cpp
+    ${CMAKE_SOURCE_DIR}/src/models/DiffEntryModel.cpp
+    ${CMAKE_SOURCE_DIR}/src/models/DiffFilterProxyModel.cpp
+    ${CMAKE_SOURCE_DIR}/src/parsers/NetgenJsonParser.cpp
+)
+
+target_include_directories(circuit_tree_model_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+)
+target_link_libraries(circuit_tree_model_tests PRIVATE Qt6::Test Qt6::Core Qt6::Widgets)
+
+add_test(NAME circuit_tree_model_tests
+    COMMAND ${CMAKE_COMMAND} -E env QT_QPA_PLATFORM=offscreen XDG_RUNTIME_DIR=/tmp ${CMAKE_BINARY_DIR}/tests/circuit_tree_model_tests
+)
+
 add_executable(mainwindow_smoke_tests
     ui/MainWindowSmokeTests.cpp
     ${CMAKE_SOURCE_DIR}/src/MainWindow.cpp
     ${CMAKE_SOURCE_DIR}/src/models/DiffEntryModel.cpp
     ${CMAKE_SOURCE_DIR}/src/models/DiffFilterProxyModel.cpp
+    ${CMAKE_SOURCE_DIR}/src/models/CircuitTreeModel.cpp
     ${CMAKE_SOURCE_DIR}/src/parsers/NetgenJsonParser.cpp
 )
 
