@@ -164,6 +164,7 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
                 Report::Circuit *child = layoutMap.value(name, nullptr);
                 if (!child) child = schematicMap.value(name, nullptr);
                 if (child && child != &parent) {
+                    child->isTopLevel = false;
                     parent.subcircuits.insert(name, child);
                 }
             }
