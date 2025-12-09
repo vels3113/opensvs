@@ -77,7 +77,6 @@ bool MainWindow::loadFile(const QString &path, bool showError)
     if (circuitTree_ && circuitTreeModel_->rowCount() > 0) {
         const QModelIndex rootIndex = circuitTreeModel_->index(0, 0);
         circuitTree_->setCurrentIndex(rootIndex);
-        circuitTree_->expand(rootIndex);
         applyCircuitFilter(rootIndex);
     } else {
         proxyModel_->setAllowedCircuits({});
