@@ -170,7 +170,10 @@ void MainWindow::buildUi()
 
     typeFilter_ = new QComboBox(contentPage_);
     typeFilter_->setObjectName(QStringLiteral("typeFilter"));
-    typeFilter_->addItems({tr("All"), tr("net_mismatch"), tr("device_mismatch")});
+    typeFilter_->addItems({tr("All"),
+                           tr("net_mismatch"),
+                           tr("device_mismatch"),
+                           tr("property_mismatch")});
     searchField_ = new QLineEdit(contentPage_);
     searchField_->setObjectName(QStringLiteral("searchField"));
     searchField_->setPlaceholderText(tr("Search object/details"));
