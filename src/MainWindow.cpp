@@ -539,6 +539,9 @@ void MainWindow::ensureLvsDock()
         QProcess proc(this);
         QStringList args;
         args << QStringLiteral("-batch") << QStringLiteral("lvs") << layout << schematic << rules << outPath << QStringLiteral("-json");
+        const QString msg = tr("Running \"netgen %1\"...").arg(args.join(" "));
+        showStatus(tr("Running netgen..."));
+        logEvent(msg);
         proc.start(QStringLiteral("netgen"), args);
         if (!proc.waitForStarted()) {
             QMessageBox::critical(this, tr("LVS failed to start"), tr("Could not start netgen process."));
