@@ -4,24 +4,12 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QStringList>
+#include <QHash>
+#include <QSet>
 #include <algorithm>
 #include <qjsonarray.h>
 #include <qjsonvalue.h>
-
-namespace {
-
-NetgenJsonParser::DiffType parseType(const QString &typeStr)
-{
-    if (typeStr.compare(QStringLiteral("net_mismatch"), Qt::CaseInsensitive) == 0) {
-        return NetgenJsonParser::DiffType::NetMismatch;
-    }
-    if (typeStr.compare(QStringLiteral("device_mismatch"), Qt::CaseInsensitive) == 0) {
-        return NetgenJsonParser::DiffType::DeviceMismatch;
-    }
-    return NetgenJsonParser::DiffType::Unknown;
-}
-
-} // namespace
 
 NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
 {
@@ -133,6 +121,151 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
                 entry.details = QStringLiteral("%1: %2 vs %3").arg(param, valA, valB);
                 entry.circuitIndex = circuitIdx;
                 sub.diffs.push_back(entry);
+            }
+        }
+
+        QJsonArray badnetsArr = rootObj.value(QStringLiteral("badnets")).toArray();
+        if (badnetsArr.size() == 1 && badnetsArr.at(0).isArray()) {
+            badnetsArr = badnetsArr.at(0).toArray();
+        }
+
+        struct NetInfo {
+            QString rawName;
+            QStringList connections;
+        };
+        QHash<QString, NetInfo> netsA;
+        QHash<QString, NetInfo> netsB;
+        QStringList nameOrder;
+
+        auto normalizeName = [](const QString &n) {
+            const QString lower = n.trimmed().toLower();
+            if (lower == QStringLiteral("gnd") || lower == QStringLiteral("0")) {
+                return QStringLiteral("0");
+            }
+            return lower;
+        };
+        auto connectionList = [](const QJsonArray &arr) {
+            QStringList parts;
+            for (const QJsonValue &v : arr) {
+                const QJsonArray conn = v.toArray();
+                if (conn.size() >= 2) {
+                    QString dev = conn.at(0).toString();
+                    if (dev.compare(QStringLiteral("inverter"), Qt::CaseInsensitive) == 0) {
+                        dev = QStringLiteral("inverted");
+                    }
+                    const QString port = conn.at(1).toString();
+                    const int count = conn.size() > 2 ? conn.at(2).toInt() : 0;
+                    parts << QStringLiteral("%1:%2 (%3)").arg(dev, port).arg(count);
+                }
+            }
+            return parts;
+        };
+        auto captureNet = [&](const QJsonArray &netArr, QHash<QString, NetInfo> &dest) {
+            if (netArr.size() < 2) return;
+            NetInfo info;
+            info.rawName = netArr.at(0).toString();
+            if (info.rawName.contains(QStringLiteral("(no matching net)"), Qt::CaseInsensitive)) {
+                return;
+            }
+            info.connections = connectionList(netArr.at(1).toArray());
+            const QString key = normalizeName(info.rawName);
+            if (!dest.contains(key)) {
+                dest.insert(key, info);
+                if (!nameOrder.contains(key)) {
+                    nameOrder.append(key);
+                }
+            } else {
+                dest[key] = info;
+            }
+        };
+
+        if (badnetsArr.size() == 2 && badnetsArr.at(0).isArray() && badnetsArr.at(1).isArray()) {
+            const QJsonArray netsListA = badnetsArr.at(0).toArray();
+            const QJsonArray netsListB = badnetsArr.at(1).toArray();
+            for (const QJsonValue &na : netsListA) {
+                if (na.isArray()) captureNet(na.toArray(), netsA);
+            }
+            for (const QJsonValue &nb : netsListB) {
+                if (nb.isArray()) captureNet(nb.toArray(), netsB);
+            }
+        } else if (badnetsArr.size() == 1 && badnetsArr.first().isArray()) {
+            QJsonArray pairArr = badnetsArr.first().toArray();
+            if (pairArr.size() == 2 && pairArr.at(0).isArray() && pairArr.at(1).isArray()) {
+                const QJsonArray netsListA = pairArr.at(0).toArray();
+                const QJsonArray netsListB = pairArr.at(1).toArray();
+                for (const QJsonValue &na : netsListA) {
+                    if (na.isArray()) captureNet(na.toArray(), netsA);
+                }
+                for (const QJsonValue &nb : netsListB) {
+                    if (nb.isArray()) captureNet(nb.toArray(), netsB);
+                }
+            }
+        } else {
+            for (const QJsonValue &val : badnetsArr) {
+                QJsonArray pairArr = val.toArray();
+                if (pairArr.size() == 1 && pairArr.at(0).isArray()) {
+                    pairArr = pairArr.at(0).toArray();
+                }
+                if (pairArr.size() < 2) continue;
+                const QJsonArray netsListA = pairArr.at(0).toArray();
+                const QJsonArray netsListB = pairArr.at(1).toArray();
+                for (const QJsonValue &na : netsListA) {
+                    if (na.isArray()) captureNet(na.toArray(), netsA);
+                }
+                for (const QJsonValue &nb : netsListB) {
+                    if (nb.isArray()) captureNet(nb.toArray(), netsB);
+                }
+            }
+        }
+
+        for (const QString &name : nameOrder) {
+            const bool hasA = netsA.contains(name);
+            const bool hasB = netsB.contains(name);
+            if (hasA && hasB) {
+                const auto &a = netsA.value(name);
+                const auto &b = netsB.value(name);
+                const QSet<QString> setA = QSet<QString>(a.connections.begin(), a.connections.end());
+                const QSet<QString> setB = QSet<QString>(b.connections.begin(), b.connections.end());
+                const QSet<QString> onlyA = setA - setB;
+                const QSet<QString> onlyB = setB - setA;
+                if (!onlyA.isEmpty() || !onlyB.isEmpty()) {
+                    DiffEntry entry;
+                    entry.type = DiffType::NetMismatch;
+                    entry.name = !a.rawName.isEmpty() ? a.rawName : b.rawName;
+                    entry.layoutCell = sub.layoutCell;
+                    entry.schematicCell = sub.schematicCell;
+                    QStringList parts;
+                    if (!onlyA.isEmpty()) {
+                        parts << QStringLiteral("The following nets are connected only in circuit A: %1")
+                                     .arg(QStringList(onlyA.begin(), onlyA.end()).join(QStringLiteral(", ")));
+                    }
+                    if (!onlyB.isEmpty()) {
+                        parts << QStringLiteral("The following nets are connected only in circuit B: %1")
+                                     .arg(QStringList(onlyB.begin(), onlyB.end()).join(QStringLiteral(", ")));
+                    }
+                    entry.details = parts.join(QStringLiteral(" | "));
+                    entry.circuitIndex = circuitIdx;
+                    sub.diffs.push_back(entry);
+                    sub.summary.netMismatches += 1;
+                }
+            } else {
+                DiffEntry entry;
+                entry.type = DiffType::NetMismatch;
+                entry.name = name;
+                entry.layoutCell = sub.layoutCell;
+                entry.schematicCell = sub.schematicCell;
+                if (hasA) {
+                    const auto &a = netsA.value(name);
+                    entry.details = QStringLiteral("No matching net in circuit B for %1 (connected to %2)")
+                            .arg(a.rawName, a.connections.join(QStringLiteral(", ")));
+                } else {
+                    const auto &b = netsB.value(name);
+                    entry.details = QStringLiteral("No matching net in circuit A for %1 (connected to %2)")
+                            .arg(b.rawName, b.connections.join(QStringLiteral(", ")));
+                }
+                entry.circuitIndex = circuitIdx;
+                sub.diffs.push_back(entry);
+                sub.summary.netMismatches += 1;
             }
         }
 

@@ -10,6 +10,7 @@ class NetgenJsonParserTests : public QObject
 
 private slots:
     void parses_sample_fixture();
+    void parses_tut2_fixture();
     void fails_on_invalid_json();
 };
 
@@ -49,6 +50,41 @@ void NetgenJsonParserTests::parses_sample_fixture()
     QVERIFY(sub.diffs[0].details.contains(QStringLiteral("ps")));
     QVERIFY(sub.diffs[0].details.contains(QStringLiteral("7.2e-6")));
     QVERIFY(sub.diffs[0].details.contains(QStringLiteral("(no value)")));
+}
+
+void NetgenJsonParserTests::parses_tut2_fixture()
+{
+    NetgenJsonParser parser;
+    const QString fixturePath = QStringLiteral(TUT2_PATH);
+
+    auto report = parser.parseFile(fixturePath);
+    QVERIFY2(report.ok, qPrintable(QStringLiteral("Expected ok parse, got error: %1").arg(report.error)));
+
+    QCOMPARE(report.circuits.size(), 2);
+    const auto &sub = report.circuits[1];
+
+    QCOMPARE(sub.summary.totalDevices, 2);
+    QCOMPARE(sub.summary.totalNets, 5);
+    QCOMPARE(sub.layoutCell, QStringLiteral("/home/valerys/opensvs/resources/fixtures/netgen_tutorial/tut2/bufferA.spice"));
+    QCOMPARE(sub.schematicCell, QStringLiteral("/home/valerys/opensvs/resources/fixtures/netgen_tutorial/tut2/bufferBx.spice"));
+    QCOMPARE(sub.subcircuits.size(), 1);
+
+    QCOMPARE(sub.diffs.size(), 6);
+    QCOMPARE(sub.diffs[0].type, NetgenJsonParser::DiffType::NetMismatch);
+    QCOMPARE(sub.diffs[0].name, QStringLiteral("Gnd"));
+    QCOMPARE(sub.diffs[0].layoutCell, QStringLiteral("/home/valerys/opensvs/resources/fixtures/netgen_tutorial/tut2/bufferA.spice"));
+    QCOMPARE(sub.diffs[0].schematicCell, QStringLiteral("/home/valerys/opensvs/resources/fixtures/netgen_tutorial/tut2/bufferBx.spice"));
+    QVERIFY(sub.diffs[0].details.contains(QStringLiteral("The following nets are connected only in circuit A: inverted:Gnd (2)")));
+    QCOMPARE(sub.diffs[1].name, QStringLiteral("Vdd"));
+    QVERIFY(sub.diffs[1].details.contains(QStringLiteral("The following nets are connected only in circuit A: inverted:Vdd (2)")));
+    QCOMPARE(sub.diffs[2].name, QStringLiteral("dummy_6"));
+    QVERIFY(sub.diffs[2].details.contains(QStringLiteral("No matching net in circuit A for dummy_6 (connected to inverted:proxyVdd (1))")));
+    QCOMPARE(sub.diffs[3].name, QStringLiteral("dummy_8"));
+    QVERIFY(sub.diffs[3].details.contains(QStringLiteral("No matching net in circuit A for dummy_8 (connected to inverted:proxyVdd (1))")));
+    QCOMPARE(sub.diffs[4].name, QStringLiteral("dummy_7"));
+    QVERIFY(sub.diffs[4].details.contains(QStringLiteral("No matching net in circuit A for dummy_7 (connected to inverted:proxyGnd (1))")));
+    QCOMPARE(sub.diffs[5].name, QStringLiteral("dummy_9"));
+    QVERIFY(sub.diffs[5].details.contains(QStringLiteral("No matching net in circuit A for dummy_9 (connected to inverted:proxyGnd (1))")));
 }
 
 void NetgenJsonParserTests::fails_on_invalid_json()
