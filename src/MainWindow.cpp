@@ -497,9 +497,11 @@ void MainWindow::ensureLvsDock()
         row->addWidget(edit, 1);
         row->addWidget(browse);
         connect(browse, &QPushButton::clicked, this, [this, edit, caption]() {
-            const QString path = QFileDialog::getOpenFileName(this, caption, QStringLiteral("./resources/fixtures"));
+            const QString startDir = lvsLastDir_.isEmpty() ? QDir::currentPath() : lvsLastDir_;
+            const QString path = QFileDialog::getOpenFileName(this, caption, startDir);
             if (!path.isEmpty()) {
                 edit->setText(path);
+                lvsLastDir_ = QFileInfo(path).absolutePath();
             }
         });
         if (target) {
