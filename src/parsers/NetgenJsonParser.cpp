@@ -254,7 +254,8 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
                 DiffEntry entry;
                 entry.type = DiffType::NetMismatch;
                 entry.subtype = DiffEntry::Subtype::NoMatchingNet;
-                entry.name = name;
+                const QString displayName = hasA ? netsA.value(name).rawName : netsB.value(name).rawName;
+                entry.name = displayName.isEmpty() ? name : displayName;
                 entry.layoutCell = sub.layoutCell;
                 entry.schematicCell = sub.schematicCell;
                 if (hasA) {
