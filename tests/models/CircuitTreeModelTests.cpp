@@ -24,7 +24,7 @@ void CircuitTreeModelTests::builds_tree_and_filters()
     child.schematicCell = QStringLiteral("childB");
     child.index = 1;
     child.isTopLevel = false;
-    root.subcircuits.insert("childA", &child);
+    root.subcircuits.insert(QStringLiteral("childA"), &child);
     QVector<NetgenJsonParser::Report::Circuit> circuits;
     circuits.append(root);
     circuits.append(child);

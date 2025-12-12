@@ -115,6 +115,7 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
                 if (valA == valB) continue;
                 DiffEntry entry;
                 entry.type = DiffType::PropertyMismatch;
+                entry.subtype = DiffEntry::Subtype::MissingParameter;
                 entry.name = !nameA.isEmpty() ? nameA : nameB;
                 entry.layoutCell = sub.layoutCell;
                 entry.schematicCell = sub.schematicCell;
@@ -231,6 +232,7 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
                 if (!onlyA.isEmpty() || !onlyB.isEmpty()) {
                     DiffEntry entry;
                     entry.type = DiffType::NetMismatch;
+                    entry.subtype = DiffEntry::Subtype::MissingConnection;
                     entry.name = !a.rawName.isEmpty() ? a.rawName : b.rawName;
                     entry.layoutCell = sub.layoutCell;
                     entry.schematicCell = sub.schematicCell;
@@ -251,6 +253,7 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
             } else {
                 DiffEntry entry;
                 entry.type = DiffType::NetMismatch;
+                entry.subtype = DiffEntry::Subtype::NoMatchingNet;
                 entry.name = name;
                 entry.layoutCell = sub.layoutCell;
                 entry.schematicCell = sub.schematicCell;
@@ -322,6 +325,21 @@ QString NetgenJsonParser::toTypeString(NetgenJsonParser::DiffType type)
     case NetgenJsonParser::DiffType::PropertyMismatch:
         return QStringLiteral("property_mismatch");
     case NetgenJsonParser::DiffType::Unknown:
+    default:
+        return QStringLiteral("unknown");
+    }
+}
+
+QString NetgenJsonParser::toSubtypeString(NetgenJsonParser::DiffEntry::Subtype subtype)
+{
+    switch (subtype) {
+    case DiffEntry::Subtype::MissingParameter:
+        return QStringLiteral("missing parameter");
+    case DiffEntry::Subtype::MissingConnection:
+        return QStringLiteral("missing connection");
+    case DiffEntry::Subtype::NoMatchingNet:
+        return QStringLiteral("no matching net");
+    case DiffEntry::Subtype::Unknown:
     default:
         return QStringLiteral("unknown");
     }

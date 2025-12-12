@@ -32,6 +32,7 @@
 #include <QSet>
 #include <functional>
 
+#include "models/DiffEntryCommon.hpp"
 #include "models/DiffEntryModel.hpp"
 #include "models/DiffFilterProxyModel.hpp"
 #include "models/CircuitTreeModel.hpp"
@@ -191,6 +192,7 @@ void MainWindow::buildUi()
     diffTable_->horizontalHeader()->setStretchLastSection(true);
     diffTable_->setSelectionBehavior(QAbstractItemView::SelectRows);
     diffTable_->setSelectionMode(QAbstractItemView::SingleSelection);
+    diffTable_->setColumnWidth(DiffEntryColumns::SUBTYPE, 120);
 
     circuitTree_ = new QTreeView(contentPage_);
     circuitTree_->setObjectName(QStringLiteral("circuitTree"));

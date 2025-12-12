@@ -34,14 +34,14 @@ void DiffEntryModelTests::populates_rows_and_columns()
     model.setDiffs(diffs);
 
     QCOMPARE(model.rowCount(), diffs.size());
-    QCOMPARE(model.columnCount(), 5);
+    QCOMPARE(model.columnCount(), 6);
 
     const QModelIndex idx = model.index(0, 0);
     QCOMPARE(model.data(idx, Qt::DisplayRole).toString(), QStringLiteral("net_mismatch"));
-    QCOMPARE(model.data(model.index(0, 1), Qt::DisplayRole).toString(), QStringLiteral("net_vdd"));
-    QCOMPARE(model.data(model.index(0, 2), Qt::DisplayRole).toString(), QStringLiteral("top_layout"));
-    QCOMPARE(model.data(model.index(0, 3), Qt::DisplayRole).toString(), QStringLiteral("top_schem"));
-    QVERIFY(model.data(model.index(0, 4), Qt::DisplayRole).toString().contains(QStringLiteral("Extra connection")));
+    QCOMPARE(model.data(model.index(0, 2), Qt::DisplayRole).toString(), QStringLiteral("net_vdd"));
+    QCOMPARE(model.data(model.index(0, 3), Qt::DisplayRole).toString(), QStringLiteral("top_layout"));
+    QCOMPARE(model.data(model.index(0, 4), Qt::DisplayRole).toString(), QStringLiteral("top_schem"));
+    QVERIFY(model.data(model.index(0, 5), Qt::DisplayRole).toString().contains(QStringLiteral("Extra connection")));
 }
 
 QTEST_MAIN(DiffEntryModelTests)
