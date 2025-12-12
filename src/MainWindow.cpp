@@ -538,10 +538,25 @@ void MainWindow::ensureLvsDock()
 
         QProcess proc(this);
         QStringList args;
-        args << QStringLiteral("-batch") << QStringLiteral("lvs") << layout << schematic << rules << outPath << QStringLiteral("-json");
+        const QString workingDir = QFileInfo(rules).absolutePath();
+        auto makeRelative = [&](const QString &p) {
+            QDir wd(workingDir);
+            const QString rel = wd.relativeFilePath(p);
+            return rel;
+        };
+
+        args << QStringLiteral("-batch") << QStringLiteral("lvs")
+             << makeRelative(layout) << makeRelative(schematic) << makeRelative(rules)
+             << makeRelative(outPath) << QStringLiteral("-json");
         const QString msg = tr("Running \"netgen %1\"...").arg(args.join(" "));
         showStatus(tr("Running netgen..."));
         logEvent(msg);
+        QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+        if (!workingDir.isEmpty()) {
+            proc.setWorkingDirectory(workingDir);
+        }
+        proc.setProcessEnvironment(env);
+        qInfo() << "Starting netgen in" << proc.workingDirectory() << args;
         proc.start(QStringLiteral("netgen"), args);
         if (!proc.waitForStarted()) {
             QMessageBox::critical(this, tr("LVS failed to start"), tr("Could not start netgen process."));
