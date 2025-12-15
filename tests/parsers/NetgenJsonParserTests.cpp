@@ -76,17 +76,17 @@ void NetgenJsonParserTests::parses_tut2_fixture()
     QCOMPARE(sub.diffs[0].name, QStringLiteral("Gnd"));
     QCOMPARE(sub.diffs[0].layoutCell, QStringLiteral("/home/valerys/opensvs/resources/fixtures/netgen_tutorial/tut2/bufferA.spice"));
     QCOMPARE(sub.diffs[0].schematicCell, QStringLiteral("/home/valerys/opensvs/resources/fixtures/netgen_tutorial/tut2/bufferBx.spice"));
-    QVERIFY(sub.diffs[0].details.contains(QStringLiteral("The following nets are connected only in circuit A: inverted:Gnd (2)")));
+    QVERIFY(sub.diffs[0].details.contains(QStringLiteral("The following nets are connected only in circuit A: inverter:Gnd (2)")));
     QCOMPARE(sub.diffs[1].name, QStringLiteral("Vdd"));
-    QVERIFY(sub.diffs[1].details.contains(QStringLiteral("The following nets are connected only in circuit A: inverted:Vdd (2)")));
+    QVERIFY(sub.diffs[1].details.contains(QStringLiteral("The following nets are connected only in circuit A: inverter:Vdd (2)")));
     QCOMPARE(sub.diffs[2].name, QStringLiteral("dummy_6"));
-    QVERIFY(sub.diffs[2].details.contains(QStringLiteral("No matching net in circuit A for dummy_6 (connected to inverted:proxyVdd (1))")));
+    QVERIFY(sub.diffs[2].details.contains(QStringLiteral("No matching net in circuit A for dummy_6 (connected to inverter:proxyVdd (1))")));
     QCOMPARE(sub.diffs[3].name, QStringLiteral("dummy_8"));
-    QVERIFY(sub.diffs[3].details.contains(QStringLiteral("No matching net in circuit A for dummy_8 (connected to inverted:proxyVdd (1))")));
+    QVERIFY(sub.diffs[3].details.contains(QStringLiteral("No matching net in circuit A for dummy_8 (connected to inverter:proxyVdd (1))")));
     QCOMPARE(sub.diffs[4].name, QStringLiteral("dummy_7"));
-    QVERIFY(sub.diffs[4].details.contains(QStringLiteral("No matching net in circuit A for dummy_7 (connected to inverted:proxyGnd (1))")));
+    QVERIFY(sub.diffs[4].details.contains(QStringLiteral("No matching net in circuit A for dummy_7 (connected to inverter:proxyGnd (1))")));
     QCOMPARE(sub.diffs[5].name, QStringLiteral("dummy_9"));
-    QVERIFY(sub.diffs[5].details.contains(QStringLiteral("No matching net in circuit A for dummy_9 (connected to inverted:proxyGnd (1))")));
+    QVERIFY(sub.diffs[5].details.contains(QStringLiteral("No matching net in circuit A for dummy_9 (connected to inverter:proxyGnd (1))")));
 }
 
 void NetgenJsonParserTests::fails_on_invalid_json()

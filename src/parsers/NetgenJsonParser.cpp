@@ -151,9 +151,6 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
                 const QJsonArray conn = v.toArray();
                 if (conn.size() >= 2) {
                     QString dev = conn.at(0).toString();
-                    if (dev.compare(QStringLiteral("inverter"), Qt::CaseInsensitive) == 0) {
-                        dev = QStringLiteral("inverted");
-                    }
                     const QString port = conn.at(1).toString();
                     const int count = conn.size() > 2 ? conn.at(2).toInt() : 0;
                     parts << QStringLiteral("%1:%2 (%3)").arg(dev, port).arg(count);
