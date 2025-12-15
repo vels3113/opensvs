@@ -44,6 +44,7 @@ void NetgenJsonParserTests::parses_sample_fixture()
 
     QCOMPARE(sub.diffs.size(), 16);
     QCOMPARE(sub.diffs[0].type, NetgenJsonParser::DiffType::PropertyMismatch);
+    QCOMPARE(sub.diffs[0].subtype, NetgenJsonParser::DiffEntry::Subtype::MissingParameter);
     QCOMPARE(sub.diffs[0].name, QStringLiteral("inverter:0/nfet:1001"));
     QCOMPARE(sub.diffs[0].layoutCell, QStringLiteral("bufferA.spice"));
     QCOMPARE(sub.diffs[0].schematicCell, QStringLiteral("bufferB.spice"));
@@ -71,6 +72,7 @@ void NetgenJsonParserTests::parses_tut2_fixture()
 
     QCOMPARE(sub.diffs.size(), 6);
     QCOMPARE(sub.diffs[0].type, NetgenJsonParser::DiffType::NetMismatch);
+    QCOMPARE(sub.diffs[0].subtype, NetgenJsonParser::DiffEntry::Subtype::MissingConnection);
     QCOMPARE(sub.diffs[0].name, QStringLiteral("Gnd"));
     QCOMPARE(sub.diffs[0].layoutCell, QStringLiteral("/home/valerys/opensvs/resources/fixtures/netgen_tutorial/tut2/bufferA.spice"));
     QCOMPARE(sub.diffs[0].schematicCell, QStringLiteral("/home/valerys/opensvs/resources/fixtures/netgen_tutorial/tut2/bufferBx.spice"));
