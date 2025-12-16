@@ -1,0 +1,125 @@
+[
+  {
+   "name": [
+      "inverter",
+      "inverter"
+   ],
+   "devices": [
+       [
+         ["pfet", 1],
+         ["nfet", 1 ]
+       ], [
+         ["pfet", 2 ],
+         ["nfet", 1 ]
+       ]
+   ],
+   "nets": [
+    6,
+    6
+   ],
+   "badnets": [
+      [
+        [
+          [
+            "Vdd",
+            [
+              [ "pfet", "bulk", 1 ]
+            ]
+          ]
+        ], [
+          [
+            "Vdd",
+            [
+              [ "pfet", "bulk", 2 ],
+              [ "pfet", "drain|source", 2 ],
+              [ "pfet", "gate", 1 ]
+            ]
+          ]
+        ]
+      ]
+   ],
+   "badelements": [
+      [
+        [
+          [
+            "(no matching instance)",
+            [
+              [ "", 0 ]
+            ]
+          ]
+        ], [
+          [
+            "pfet:XU3",
+            [
+              [ "drain", 5 ],
+              [ "gate", 5 ],
+              [ "bulk", 5 ]
+            ]
+          ]
+        ]
+      ]
+   ]
+  },
+  {
+   "name": [
+      "bufferA.spice",
+      "bufferB.spice"
+   ],
+   "devices": [
+       [
+         ["pfet", 2],
+         ["nfet", 2 ]
+       ], [
+         ["pfet", 3 ],
+         ["nfet", 2 ]
+       ]
+   ],
+   "nets": [
+    5,
+    5
+   ],
+   "badnets": [
+      [
+        [
+          [
+            "Vdd",
+            [
+              [ "pfet", "drain|source", 2 ],
+              [ "pfet", "bulk", 2 ]
+            ]
+          ]
+        ], [
+          [
+            "Vdd",
+            [
+              [ "pfet", "drain|source", 4 ],
+              [ "pfet", "bulk", 3 ],
+              [ "pfet", "gate", 1 ]
+            ]
+          ]
+        ]
+      ]
+   ],
+   "badelements": [
+      [
+        [
+          [
+            "(no matching instance)",
+            [
+              [ "", 0 ]
+            ]
+          ]
+        ], [
+          [
+            "inverter:X1/pfet:XU3",
+            [
+              [ "drain", 8 ],
+              [ "gate", 8 ],
+              [ "bulk", 8 ]
+            ]
+          ]
+        ]
+      ]
+   ]
+  }
+]

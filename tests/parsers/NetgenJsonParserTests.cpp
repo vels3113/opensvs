@@ -11,6 +11,7 @@ class NetgenJsonParserTests : public QObject
 private slots:
     void parses_sample_fixture();
     void parses_tut2_fixture();
+    void parses_tut3_fixture();
     void fails_on_invalid_json();
 };
 
@@ -87,6 +88,36 @@ void NetgenJsonParserTests::parses_tut2_fixture()
     QVERIFY(sub.diffs[4].details.contains(QStringLiteral("No matching net in circuit A for dummy_7 (connected to inverter:proxyGnd (1))")));
     QCOMPARE(sub.diffs[5].name, QStringLiteral("dummy_9"));
     QVERIFY(sub.diffs[5].details.contains(QStringLiteral("No matching net in circuit A for dummy_9 (connected to inverter:proxyGnd (1))")));
+}
+
+void NetgenJsonParserTests::parses_tut3_fixture()
+{
+    NetgenJsonParser parser;
+    const QString fixturePath = QStringLiteral(TUT3_PATH);
+
+    auto report = parser.parseFile(fixturePath);
+    QVERIFY2(report.ok, qPrintable(QStringLiteral("Expected ok parse, got error: %1").arg(report.error)));
+
+    QCOMPARE(report.circuits.size(), 2);
+    const auto &sub = report.circuits[0];
+
+    QCOMPARE(sub.summary.totalDevices, 2);
+    QCOMPARE(sub.summary.totalNets, 6);
+    QCOMPARE(sub.layoutCell, QStringLiteral("inverter"));
+    QCOMPARE(sub.schematicCell, QStringLiteral("inverter"));
+    QCOMPARE(sub.subcircuits.size(), 0);
+
+    QCOMPARE(sub.diffs.size(), 2);
+    QCOMPARE(sub.diffs[0].type, NetgenJsonParser::DiffType::NetMismatch);
+    QCOMPARE(sub.diffs[0].subtype, NetgenJsonParser::DiffEntry::Subtype::MissingConnection);
+    QCOMPARE(sub.diffs[0].name, QStringLiteral("Vdd"));
+    QCOMPARE(sub.diffs[0].layoutCell, QStringLiteral("inverter"));
+    QCOMPARE(sub.diffs[0].schematicCell, QStringLiteral("inverter"));
+    QVERIFY(sub.diffs[0].details.contains(QStringLiteral("The following nets are connected only in circuit A: pfet:bulk (1) | The following nets are connected only in circuit B: pfet:bulk (2), pfet:drain|source (2), pfet:gate (1)")));
+    QCOMPARE(sub.diffs[1].type, NetgenJsonParser::DiffType::DeviceMismatch);
+    QCOMPARE(sub.diffs[1].subtype, NetgenJsonParser::DiffEntry::Subtype::MissingInstance);
+    QCOMPARE(sub.diffs[1].name, QStringLiteral("pfet:XU3"));
+    QVERIFY(sub.diffs[1].details.contains(QStringLiteral("The instance is present only in circuit B")));
 }
 
 void NetgenJsonParserTests::fails_on_invalid_json()

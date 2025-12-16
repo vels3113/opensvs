@@ -222,10 +222,20 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
             if (hasA && hasB) {
                 const auto &a = netsA.value(name);
                 const auto &b = netsB.value(name);
-                const QSet<QString> setA = QSet<QString>(a.connections.begin(), a.connections.end());
-                const QSet<QString> setB = QSet<QString>(b.connections.begin(), b.connections.end());
-                const QSet<QString> onlyA = setA - setB;
-                const QSet<QString> onlyB = setB - setA;
+                const QSet<QString> setA(a.connections.begin(), a.connections.end());
+                const QSet<QString> setB(b.connections.begin(), b.connections.end());
+                QStringList onlyA;
+                for (const auto &conn : a.connections) {
+                    if (!setB.contains(conn)) {
+                        onlyA.append(conn);
+                    }
+                }
+                QStringList onlyB;
+                for (const auto &conn : b.connections) {
+                    if (!setA.contains(conn)) {
+                        onlyB.append(conn);
+                    }
+                }
                 if (!onlyA.isEmpty() || !onlyB.isEmpty()) {
                     DiffEntry entry;
                     entry.type = DiffType::NetMismatch;
@@ -236,11 +246,11 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
                     QStringList parts;
                     if (!onlyA.isEmpty()) {
                         parts << QStringLiteral("The following nets are connected only in circuit A: %1")
-                                     .arg(QStringList(onlyA.begin(), onlyA.end()).join(QStringLiteral(", ")));
+                                     .arg(onlyA.join(QStringLiteral(", ")));
                     }
                     if (!onlyB.isEmpty()) {
                         parts << QStringLiteral("The following nets are connected only in circuit B: %1")
-                                     .arg(QStringList(onlyB.begin(), onlyB.end()).join(QStringLiteral(", ")));
+                                     .arg(onlyB.join(QStringLiteral(", ")));
                     }
                     entry.details = parts.join(QStringLiteral(" | "));
                     entry.circuitIndex = circuitIdx;
@@ -267,6 +277,56 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
                 entry.circuitIndex = circuitIdx;
                 sub.diffs.push_back(entry);
                 sub.summary.netMismatches += 1;
+            }
+        }
+
+        const QJsonArray badElementsArr = rootObj.value(QStringLiteral("badelements")).toArray();
+        auto processElementPair = [&](const QJsonArray &listA, const QJsonArray &listB) {
+            const int maxCount = std::max(listA.size(), listB.size());
+            for (int i = 0; i < maxCount; ++i) {
+                const QJsonArray elemA = i < listA.size() ? listA.at(i).toArray() : QJsonArray();
+                const QJsonArray elemB = i < listB.size() ? listB.at(i).toArray() : QJsonArray();
+                const QString nameA = !elemA.isEmpty() ? elemA.at(0).toString() : QString();
+                const QString nameB = !elemB.isEmpty() ? elemB.at(0).toString() : QString();
+                const bool missingA = nameA.contains(QStringLiteral("(no matching instance)"), Qt::CaseInsensitive) || elemA.isEmpty();
+                const bool missingB = nameB.contains(QStringLiteral("(no matching instance)"), Qt::CaseInsensitive) || elemB.isEmpty();
+
+                if (missingA == missingB) continue;
+
+                DiffEntry entry;
+                entry.type = DiffType::DeviceMismatch;
+                entry.subtype = DiffEntry::Subtype::MissingInstance;
+                entry.name = missingA ? nameB : nameA;
+                entry.layoutCell = sub.layoutCell;
+                entry.schematicCell = sub.schematicCell;
+                entry.details = missingA
+                        ? QStringLiteral("The instance is present only in circuit B")
+                        : QStringLiteral("The instance is present only in circuit A");
+                entry.circuitIndex = circuitIdx;
+                sub.diffs.push_back(entry);
+                sub.summary.deviceMismatches += 1;
+            }
+        };
+
+        if (!badElementsArr.isEmpty()) {
+            if (badElementsArr.size() == 2 && badElementsArr.at(0).isArray() && badElementsArr.at(1).isArray()) {
+                processElementPair(badElementsArr.at(0).toArray(), badElementsArr.at(1).toArray());
+            } else if (badElementsArr.size() == 1 && badElementsArr.first().isArray()) {
+                const QJsonArray first = badElementsArr.first().toArray();
+                if (first.size() == 2 && first.at(0).isArray() && first.at(1).isArray()) {
+                    processElementPair(first.at(0).toArray(), first.at(1).toArray());
+                }
+            } else {
+                for (const QJsonValue &val : badElementsArr) {
+                    if (!val.isArray()) continue;
+                    QJsonArray pair = val.toArray();
+                    if (pair.size() == 1 && pair.at(0).isArray()) {
+                        pair = pair.at(0).toArray();
+                    }
+                    if (pair.size() == 2 && pair.at(0).isArray() && pair.at(1).isArray()) {
+                        processElementPair(pair.at(0).toArray(), pair.at(1).toArray());
+                    }
+                }
             }
         }
 
@@ -337,6 +397,8 @@ QString NetgenJsonParser::toSubtypeString(NetgenJsonParser::DiffEntry::Subtype s
         return QStringLiteral("missing connection");
     case DiffEntry::Subtype::NoMatchingNet:
         return QStringLiteral("no matching net");
+    case DiffEntry::Subtype::MissingInstance:
+        return QStringLiteral("missing instance");
     case DiffEntry::Subtype::Unknown:
     default:
         return QStringLiteral("unknown");

@@ -31,7 +31,8 @@ public:
             Unknown,
             MissingParameter,
             MissingConnection,
-            NoMatchingNet
+            NoMatchingNet,
+            MissingInstance
         };
         Subtype subtype = Subtype::Unknown;
         QString name;
