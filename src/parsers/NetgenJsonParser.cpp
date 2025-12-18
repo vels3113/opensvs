@@ -45,6 +45,10 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
     for (const QJsonValue &rootVal : arr) {
         if (!rootVal.isObject()) continue;
         const QJsonObject rootObj = rootVal.toObject();
+        const QJsonValue namesVal = rootObj.value(QStringLiteral("name"));
+        if (!namesVal.isArray()) continue;
+        const QJsonArray namesArr = namesVal.toArray();
+        if (namesArr.isEmpty()) continue;
         Report::Circuit sub;
         sub.index = circuitIdx;
 
@@ -90,7 +94,6 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
             }
         }
 
-        const QJsonArray namesArr = rootObj.value(QStringLiteral("name")).toArray();
         sub.layoutCell = namesArr.size() > 0 ? namesArr.at(0).toString() : QString();
         sub.schematicCell = namesArr.size() > 1 ? namesArr.at(1).toString() : QString();
         const QJsonArray propertiesArr = rootObj.value(QStringLiteral("properties")).toArray();
