@@ -8,6 +8,8 @@ target_include_directories(netgenjson_parser_tests PRIVATE
 )
 target_compile_definitions(netgenjson_parser_tests PRIVATE
     FIXTURE_PATH=\"${CMAKE_SOURCE_DIR}/resources/fixtures/netgen_tutorial/tut1/comp.json\"
+    TUT2_PATH=\"${CMAKE_SOURCE_DIR}/resources/fixtures/netgen_tutorial/tut2/badnets.json\"
+    TUT3_PATH=\"${CMAKE_SOURCE_DIR}/resources/fixtures/netgen_tutorial/tut3/comp.json\"
 )
 target_link_libraries(netgenjson_parser_tests PRIVATE Qt6::Test Qt6::Core)
 

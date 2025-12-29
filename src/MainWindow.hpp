@@ -2,6 +2,7 @@
 
 #include <QMainWindow>
 #include <QStringList>
+#include <QDir>
 
 class QLabel;
 class QTableView;
@@ -83,4 +84,5 @@ private:
     QLineEdit *lvsSchematicEdit_{nullptr};
     QLineEdit *lvsRulesEdit_{nullptr};
     QVector<NetgenJsonParser::Report::Circuit> circuits_;
+    QString lvsLastDir_{QDir::currentPath()};
 };

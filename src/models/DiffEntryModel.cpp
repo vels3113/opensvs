@@ -41,6 +41,8 @@ QVariant DiffEntryModel::data(const QModelIndex &index, int role) const
     switch (index.column()) {
     case DiffEntryColumns::TYPE:
         return NetgenJsonParser::toTypeString(entry.type);
+    case DiffEntryColumns::SUBTYPE:
+        return NetgenJsonParser::toSubtypeString(entry.subtype);
     case DiffEntryColumns::OBJECT:
         return entry.name;
     case DiffEntryColumns::LAYOUT_CELL:
@@ -62,6 +64,7 @@ QVariant DiffEntryModel::headerData(int section, Qt::Orientation orientation, in
 
     switch (section) {
     case DiffEntryColumns::TYPE: return QStringLiteral("Type");
+    case DiffEntryColumns::SUBTYPE: return QStringLiteral("Subtype");
     case DiffEntryColumns::OBJECT: return QStringLiteral("Object");
     case DiffEntryColumns::LAYOUT_CELL: return QStringLiteral("Layout Cell");
     case DiffEntryColumns::SCHEMATIC_CELL: return QStringLiteral("Schematic Cell");

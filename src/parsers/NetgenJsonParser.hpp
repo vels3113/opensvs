@@ -27,6 +27,14 @@ public:
 
     struct DiffEntry {
         DiffType type = DiffType::Unknown;
+        enum class Subtype {
+            Unknown,
+            MissingParameter,
+            MissingConnection,
+            NoMatchingNet,
+            MissingInstance
+        };
+        Subtype subtype = Subtype::Unknown;
         QString name;
         QString layoutCell;
         QString schematicCell;
@@ -55,4 +63,5 @@ public:
     Report parseFile(const QString &path) const;
 
     static QString toTypeString(DiffType type);
+    static QString toSubtypeString(DiffEntry::Subtype subtype);
 };

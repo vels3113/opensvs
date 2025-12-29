@@ -1,0 +1,184 @@
+[
+  {
+   "name": [
+      "inverter",
+      "inverter"
+   ],
+   "devices": [
+       [
+         ["pfet", 1],
+         ["nfet", 1 ]
+       ], [
+         ["pfet", 1 ],
+         ["nfet", 1 ]
+       ]
+   ],
+   "nets": [
+    6,
+    6
+   ],
+   "badnets": [
+   ],
+   "badelements": [
+   ],
+   "properties": [
+      [
+         [
+           "nfet:1001",
+           [
+             ["ps", "7.2e-6"],
+             ["as", "3.24e-12"],
+             ["pd", "7.2e-6"],
+             ["ad", "3.24e-12"]
+           ]
+         ],
+         [
+           "nfet:XU2",
+           [
+             ["(no matching parameter)", "(no value)"],
+             ["(no matching parameter)", "(no value)"],
+             ["(no matching parameter)", "(no value)"],
+             ["(no matching parameter)", "(no value)"]
+           ]
+         ]
+      ],
+      [
+         [
+           "pfet:1000",
+           [
+             ["ps", "7.2e-6"],
+             ["as", "3.24e-12"],
+             ["pd", "7.2e-6"],
+             ["ad", "3.24e-12"]
+           ]
+         ],
+         [
+           "pfet:XU1",
+           [
+             ["(no matching parameter)", "(no value)"],
+             ["(no matching parameter)", "(no value)"],
+             ["(no matching parameter)", "(no value)"],
+             ["(no matching parameter)", "(no value)"]
+           ]
+         ]
+      ]
+   ],
+   "pins": [
+      [
+        "pos",
+        "Vdd",
+        "neg",
+        "Gnd",
+        "out",
+        "in"
+      ], [
+        "pos",
+        "(no matching pin)",
+        "neg",
+        "(no matching pin)",
+        "out",
+        "in"
+      ]
+   ]
+  },
+  {
+   "name": [
+      "/home/valerys/opensvs/resources/fixtures/netgen_tutorial/tut2/bufferA.spice",
+      "/home/valerys/opensvs/resources/fixtures/netgen_tutorial/tut2/bufferBx.spice"
+   ],
+   "devices": [
+       [
+         ["inverter", 2 ]
+       ], [
+         ["inverter", 2 ]
+       ]
+   ],
+   "nets": [
+    5,
+    9
+   ],
+   "badnets": [
+      [
+        [
+          [
+            "Gnd",
+            [
+              [ "inverter", "neg", 2 ],
+              [ "inverter", "Gnd", 2 ]
+            ]
+          ],
+          [
+            "Vdd",
+            [
+              [ "inverter", "pos", 2 ],
+              [ "inverter", "Vdd", 2 ]
+            ]
+          ],
+          [
+            "(no matching net)",
+            [
+              [ "", "", 0 ]
+            ]
+          ],
+          [
+            "(no matching net)",
+            [
+              [ "", "", 0 ]
+            ]
+          ],
+          [
+            "(no matching net)",
+            [
+              [ "", "", 0 ]
+            ]
+          ],
+          [
+            "(no matching net)",
+            [
+              [ "", "", 0 ]
+            ]
+          ]
+        ], [
+          [
+            "Vdd",
+            [
+              [ "inverter", "pos", 2 ]
+            ]
+          ],
+          [
+            "0",
+            [
+              [ "inverter", "neg", 2 ]
+            ]
+          ],
+          [
+            "dummy_6",
+            [
+              [ "inverter", "proxyVdd", 1 ]
+            ]
+          ],
+          [
+            "dummy_8",
+            [
+              [ "inverter", "proxyVdd", 1 ]
+            ]
+          ],
+          [
+            "dummy_7",
+            [
+              [ "inverter", "proxyGnd", 1 ]
+            ]
+          ],
+          [
+            "dummy_9",
+            [
+              [ "inverter", "proxyGnd", 1 ]
+            ]
+          ]
+        ]
+      ]
+   ],
+   "badelements": [
+   ]
+  }
+]
