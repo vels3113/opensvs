@@ -248,11 +248,11 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
                     entry.schematicCell = sub.schematicCell;
                     QStringList parts;
                     if (!onlyA.isEmpty()) {
-                        parts << QStringLiteral("The following nets are connected only in circuit A: %1")
+                        parts << QStringLiteral("The following nets are connected only in Layout circuit: %1")
                                      .arg(onlyA.join(QStringLiteral(", ")));
                     }
                     if (!onlyB.isEmpty()) {
-                        parts << QStringLiteral("The following nets are connected only in circuit B: %1")
+                        parts << QStringLiteral("The following nets are connected only in Schematics circuit: %1")
                                      .arg(onlyB.join(QStringLiteral(", ")));
                     }
                     entry.details = parts.join(QStringLiteral(" | "));
@@ -270,11 +270,11 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
                 entry.schematicCell = sub.schematicCell;
                 if (hasA) {
                     const auto &a = netsA.value(name);
-                    entry.details = QStringLiteral("No matching net in circuit B for %1 (connected to %2)")
+                    entry.details = QStringLiteral("No matching net in Schematics circuit for %1 (connected to %2)")
                             .arg(a.rawName, a.connections.join(QStringLiteral(", ")));
                 } else {
                     const auto &b = netsB.value(name);
-                    entry.details = QStringLiteral("No matching net in circuit A for %1 (connected to %2)")
+                    entry.details = QStringLiteral("No matching net in Layout circuit for %1 (connected to %2)")
                             .arg(b.rawName, b.connections.join(QStringLiteral(", ")));
                 }
                 entry.circuitIndex = circuitIdx;
@@ -303,8 +303,8 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
                 entry.layoutCell = sub.layoutCell;
                 entry.schematicCell = sub.schematicCell;
                 entry.details = missingA
-                        ? QStringLiteral("The instance is present only in circuit B")
-                        : QStringLiteral("The instance is present only in circuit A");
+                            ? QStringLiteral("The instance is present only in Schematics circuit")
+                            : QStringLiteral("The instance is present only in Layout circuit");
                 entry.circuitIndex = circuitIdx;
                 sub.diffs.push_back(entry);
                 sub.summary.deviceMismatches += 1;
