@@ -31,6 +31,7 @@ public:
             Unknown,
             MissingParameter,
             MissingConnection,
+            UnmatchedConnections,
             NoMatchingNet,
             MissingInstance
         };
