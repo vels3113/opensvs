@@ -11,6 +11,7 @@ public:
         Unknown,
         NetMismatch,
         DeviceMismatch,
+        InstanceMismatch,
         PropertyMismatch
     };
 
@@ -33,7 +34,8 @@ public:
             MissingConnection,
             UnmatchedConnections,
             NoMatchingNet,
-            MissingInstance
+            MissingInstance,
+            NoMatchingInstance
         };
         Subtype subtype = Subtype::Unknown;
         QString name;
