@@ -55,9 +55,6 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
         const QJsonArray netsArr = rootObj.value(QStringLiteral("nets")).toArray();
         if (!netsArr.isEmpty()) {
             sub.summary.totalNets = netsArr.first().toInt(0);
-            if (netsArr.size() > 1 && netsArr.at(0).toInt() != netsArr.at(1).toInt()) {
-                sub.summary.netMismatches = 1;
-            }
         }
 
         const QJsonArray devicesArr = rootObj.value(QStringLiteral("devices")).toArray();
@@ -242,17 +239,21 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
                 if (!onlyA.isEmpty() || !onlyB.isEmpty()) {
                     DiffEntry entry;
                     entry.type = DiffType::NetMismatch;
-                    entry.subtype = DiffEntry::Subtype::MissingConnection;
+                    if (!onlyA.isEmpty() && !onlyB.isEmpty()) {
+                        entry.subtype = DiffEntry::Subtype::UnmatchedConnections;
+                    } else {
+                        entry.subtype = DiffEntry::Subtype::MissingConnection;
+                    }
                     entry.name = !a.rawName.isEmpty() ? a.rawName : b.rawName;
                     entry.layoutCell = sub.layoutCell;
                     entry.schematicCell = sub.schematicCell;
                     QStringList parts;
                     if (!onlyA.isEmpty()) {
-                        parts << QStringLiteral("The following nets are connected only in Layout circuit: %1")
+                        parts << QStringLiteral("The following pins are connected only in Layout circuit: %1")
                                      .arg(onlyA.join(QStringLiteral(", ")));
                     }
                     if (!onlyB.isEmpty()) {
-                        parts << QStringLiteral("The following nets are connected only in Schematics circuit: %1")
+                        parts << QStringLiteral("The following pins are connected only in Schematics circuit: %1")
                                      .arg(onlyB.join(QStringLiteral(", ")));
                     }
                     entry.details = parts.join(QStringLiteral(" | "));
@@ -422,6 +423,8 @@ QString NetgenJsonParser::toSubtypeString(NetgenJsonParser::DiffEntry::Subtype s
         return QStringLiteral("missing parameter");
     case DiffEntry::Subtype::MissingConnection:
         return QStringLiteral("missing connection");
+    case DiffEntry::Subtype::UnmatchedConnections:
+        return QStringLiteral("unmatched connections");
     case DiffEntry::Subtype::NoMatchingNet:
         return QStringLiteral("no matching net");
     case DiffEntry::Subtype::MissingInstance:

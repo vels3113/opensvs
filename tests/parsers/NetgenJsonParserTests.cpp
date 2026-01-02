@@ -78,9 +78,9 @@ void NetgenJsonParserTests::parses_tut2_fixture()
     QCOMPARE(sub.diffs[0].name, QStringLiteral("Gnd"));
     QCOMPARE(sub.diffs[0].layoutCell, QStringLiteral("/home/valerys/opensvs/resources/fixtures/netgen_tutorial/tut2/bufferA.spice"));
     QCOMPARE(sub.diffs[0].schematicCell, QStringLiteral("/home/valerys/opensvs/resources/fixtures/netgen_tutorial/tut2/bufferBx.spice"));
-    QVERIFY(sub.diffs[0].details.contains(QStringLiteral("The following nets are connected only in Layout circuit: inverter:Gnd (2)")));
+    QVERIFY(sub.diffs[0].details.contains(QStringLiteral("The following pins are connected only in Layout circuit: inverter:Gnd (2)")));
     QCOMPARE(sub.diffs[1].name, QStringLiteral("Vdd"));
-    QVERIFY(sub.diffs[1].details.contains(QStringLiteral("The following nets are connected only in Layout circuit: inverter:Vdd (2)")));
+    QVERIFY(sub.diffs[1].details.contains(QStringLiteral("The following pins are connected only in Layout circuit: inverter:Vdd (2)")));
     QCOMPARE(sub.diffs[2].name, QStringLiteral("dummy_6"));
     QVERIFY(sub.diffs[2].details.contains(QStringLiteral("No matching net in Layout circuit for dummy_6 (connected to inverter:proxyVdd (1))")));
     QCOMPARE(sub.diffs[3].name, QStringLiteral("dummy_8"));
@@ -110,11 +110,11 @@ void NetgenJsonParserTests::parses_tut3_fixture()
 
     QCOMPARE(sub.diffs.size(), 2);
     QCOMPARE(sub.diffs[0].type, NetgenJsonParser::DiffType::NetMismatch);
-    QCOMPARE(sub.diffs[0].subtype, NetgenJsonParser::DiffEntry::Subtype::MissingConnection);
+    QCOMPARE(sub.diffs[0].subtype, NetgenJsonParser::DiffEntry::Subtype::UnmatchedConnections);
     QCOMPARE(sub.diffs[0].name, QStringLiteral("Vdd"));
     QCOMPARE(sub.diffs[0].layoutCell, QStringLiteral("inverter"));
     QCOMPARE(sub.diffs[0].schematicCell, QStringLiteral("inverter"));
-    QVERIFY(sub.diffs[0].details.contains(QStringLiteral("The following nets are connected only in Layout circuit: pfet:bulk (1) | The following nets are connected only in Schematics circuit: pfet:bulk (2), pfet:drain|source (2), pfet:gate (1)")));
+    QVERIFY(sub.diffs[0].details.contains(QStringLiteral("The following pins are connected only in Layout circuit: pfet:bulk (1) | The following pins are connected only in Schematics circuit: pfet:bulk (2), pfet:drain|source (2), pfet:gate (1)")));
     QCOMPARE(sub.diffs[1].type, NetgenJsonParser::DiffType::DeviceMismatch);
     QCOMPARE(sub.diffs[1].subtype, NetgenJsonParser::DiffEntry::Subtype::MissingInstance);
     QCOMPARE(sub.diffs[1].name, QStringLiteral("pfet:XU3"));
