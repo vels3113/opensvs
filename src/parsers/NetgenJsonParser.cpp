@@ -55,9 +55,6 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
         const QJsonArray netsArr = rootObj.value(QStringLiteral("nets")).toArray();
         if (!netsArr.isEmpty()) {
             sub.summary.totalNets = netsArr.first().toInt(0);
-            if (netsArr.size() > 1 && netsArr.at(0).toInt() != netsArr.at(1).toInt()) {
-                sub.summary.netMismatches = 1;
-            }
         }
 
         const QJsonArray devicesArr = rootObj.value(QStringLiteral("devices")).toArray();
