@@ -289,25 +289,47 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
             for (int i = 0; i < maxCount; ++i) {
                 const QJsonArray elemA = i < listA.size() ? listA.at(i).toArray() : QJsonArray();
                 const QJsonArray elemB = i < listB.size() ? listB.at(i).toArray() : QJsonArray();
-                const QString nameA = !elemA.isEmpty() ? elemA.at(0).toString() : QString();
-                const QString nameB = !elemB.isEmpty() ? elemB.at(0).toString() : QString();
-                const bool missingA = nameA.contains(QStringLiteral("(no matching instance)"), Qt::CaseInsensitive) || elemA.isEmpty();
-                const bool missingB = nameB.contains(QStringLiteral("(no matching instance)"), Qt::CaseInsensitive) || elemB.isEmpty();
+                const QString instanceNameA = !elemA.isEmpty() ? elemA.at(0).toString() : QString();
+                const QString instanceNameB = !elemB.isEmpty() ? elemB.at(0).toString() : QString();
+                const bool missingA = instanceNameA.contains(QStringLiteral("(no matching instance)"), Qt::CaseInsensitive) || elemA.isEmpty();
+                const bool missingB = instanceNameB.contains(QStringLiteral("(no matching instance)"), Qt::CaseInsensitive) || elemB.isEmpty();
 
-                if (missingA == missingB) continue;
-
-                DiffEntry entry;
-                entry.type = DiffType::DeviceMismatch;
-                entry.subtype = DiffEntry::Subtype::MissingInstance;
-                entry.name = missingA ? nameB : nameA;
-                entry.layoutCell = sub.layoutCell;
-                entry.schematicCell = sub.schematicCell;
-                entry.details = missingA
+                if (missingA != missingB) {
+                    DiffEntry entry;
+                    entry.type = DiffType::DeviceMismatch;
+                    entry.subtype = DiffEntry::Subtype::MissingInstance;
+                    entry.name = missingA ? instanceNameB : instanceNameA;
+                    entry.layoutCell = sub.layoutCell;
+                    entry.schematicCell = sub.schematicCell;
+                    entry.details = missingA
                             ? QStringLiteral("The instance is present only in Schematics circuit")
                             : QStringLiteral("The instance is present only in Layout circuit");
-                entry.circuitIndex = circuitIdx;
-                sub.diffs.push_back(entry);
-                sub.summary.deviceMismatches += 1;
+                    entry.circuitIndex = circuitIdx;
+                    sub.diffs.push_back(entry);
+                    sub.summary.deviceMismatches += 1;
+                } else if (!missingA && !missingB) {
+                    DiffEntry entryA;
+                    entryA.type = DiffType::InstanceMismatch;
+                    entryA.subtype = DiffEntry::Subtype::NoMatchingInstance;
+                    entryA.name = instanceNameA.split(QStringLiteral(":")).first();
+                    entryA.layoutCell = sub.layoutCell;
+                    entryA.schematicCell = sub.schematicCell;
+                    entryA.details = QStringLiteral("Instance %1 present in Layout circuit has no matching instance").arg(instanceNameA);
+                    entryA.circuitIndex = circuitIdx;
+                    sub.diffs.push_back(entryA);
+                    sub.summary.deviceMismatches += 1;
+
+                    DiffEntry entryB;
+                    entryB.type = DiffType::InstanceMismatch;
+                    entryB.subtype = DiffEntry::Subtype::NoMatchingInstance;
+                    entryB.name = instanceNameB.split(QStringLiteral(":")).first();;
+                    entryB.layoutCell = sub.layoutCell;
+                    entryB.schematicCell = sub.schematicCell;
+                    entryB.details = QStringLiteral("Instance %1 present in Schematics circuit has no matching instance").arg(instanceNameB);
+                    entryB.circuitIndex = circuitIdx;
+                    sub.diffs.push_back(entryB);
+                    sub.summary.deviceMismatches += 1;
+                }
             }
         };
 
@@ -383,6 +405,8 @@ QString NetgenJsonParser::toTypeString(NetgenJsonParser::DiffType type)
         return QStringLiteral("net_mismatch");
     case NetgenJsonParser::DiffType::DeviceMismatch:
         return QStringLiteral("device_mismatch");
+    case NetgenJsonParser::DiffType::InstanceMismatch:
+        return QStringLiteral("instance_mismatch");
     case NetgenJsonParser::DiffType::PropertyMismatch:
         return QStringLiteral("property_mismatch");
     case NetgenJsonParser::DiffType::Unknown:
@@ -402,6 +426,8 @@ QString NetgenJsonParser::toSubtypeString(NetgenJsonParser::DiffEntry::Subtype s
         return QStringLiteral("no matching net");
     case DiffEntry::Subtype::MissingInstance:
         return QStringLiteral("missing instance");
+    case DiffEntry::Subtype::NoMatchingInstance:
+        return QStringLiteral("no matching instance");
     case DiffEntry::Subtype::Unknown:
     default:
         return QStringLiteral("unknown");

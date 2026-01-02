@@ -12,6 +12,7 @@ private slots:
     void parses_sample_fixture();
     void parses_tut2_fixture();
     void parses_tut3_fixture();
+    void parses_tut6_fixture_instance_mismatches();
     void fails_on_invalid_json();
 };
 
@@ -118,6 +119,25 @@ void NetgenJsonParserTests::parses_tut3_fixture()
     QCOMPARE(sub.diffs[1].subtype, NetgenJsonParser::DiffEntry::Subtype::MissingInstance);
     QCOMPARE(sub.diffs[1].name, QStringLiteral("pfet:XU3"));
     QVERIFY(sub.diffs[1].details.contains(QStringLiteral("The instance is present only in Schematics circuit")));
+}
+
+void NetgenJsonParserTests::parses_tut6_fixture_instance_mismatches()
+{
+    NetgenJsonParser parser;
+    const QString fixturePath = QStringLiteral(TUT6_PATH);
+
+    auto report = parser.parseFile(fixturePath);
+    QVERIFY2(report.ok, qPrintable(QStringLiteral("Expected ok parse, got error: %1").arg(report.error)));
+    QVERIFY(!report.circuits.isEmpty());
+
+    const auto &sub = report.circuits.first();
+
+    QCOMPARE(sub.diffs.size(), 1609);
+    const auto diff = sub.diffs[1261];
+    QCOMPARE(diff.type, NetgenJsonParser::DiffType::InstanceMismatch);
+    QCOMPARE(diff.subtype, NetgenJsonParser::DiffEntry::Subtype::NoMatchingInstance);
+    QCOMPARE(diff.name, QStringLiteral("NOR2X1"));
+    QVERIFY(diff.details.contains(QStringLiteral("Instance NOR2X1:173 present in Layout circuit has no matching instance")));
 }
 
 void NetgenJsonParserTests::fails_on_invalid_json()
