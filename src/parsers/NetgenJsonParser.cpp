@@ -108,10 +108,30 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
             for (int i = 0; i < maxParams; ++i) {
                 const QJsonArray pA = i < paramsA.size() ? paramsA.at(i).toArray() : QJsonArray();
                 const QJsonArray pB = i < paramsB.size() ? paramsB.at(i).toArray() : QJsonArray();
-                const QString param = !pA.isEmpty() ? pA.at(0).toString()
-                                     : (!pB.isEmpty() ? pB.at(0).toString() : QStringLiteral("unknown"));
-                const QString valA = pA.size() > 1 ? pA.at(1).toString() : QStringLiteral("(missing)");
-                const QString valB = pB.size() > 1 ? pB.at(1).toString() : QStringLiteral("(missing)");
+                const QString paramNameA = !pA.isEmpty() ? pA.at(0).toString() : QString();
+                const QString paramNameB = !pB.isEmpty() ? pB.at(0).toString() : QString();
+                const bool missingParamA = paramNameA.contains(QStringLiteral("(no matching parameter)"), Qt::CaseSensitive);
+                const bool missingParamB = paramNameB.contains(QStringLiteral("(no matching parameter)"), Qt::CaseSensitive);
+
+                QString param = QStringLiteral("unknown");
+                QString valA = QStringLiteral("(missing)");
+                QString valB = QStringLiteral("(missing)");
+
+                if (missingParamA && !missingParamB) {
+                    param = paramNameB.isEmpty() ? QStringLiteral("unknown") : paramNameB;
+                    valA = pA.size() > 1 ? pA.at(1).toString() : QStringLiteral("(missing)");
+                    valB = pB.size() > 1 ? pB.at(1).toString() : QStringLiteral("(missing)");
+                } else if (missingParamB && !missingParamA) {
+                    param = paramNameA.isEmpty() ? QStringLiteral("unknown") : paramNameA;
+                    valA = pA.size() > 1 ? pA.at(1).toString() : QStringLiteral("(missing)");
+                    valB = pB.size() > 1 ? pB.at(1).toString() : QStringLiteral("(missing)");
+                } else {
+                    param = !paramNameA.isEmpty() ? paramNameA
+                                                  : (!paramNameB.isEmpty() ? paramNameB : QStringLiteral("unknown"));
+                    valA = pA.size() > 1 ? pA.at(1).toString() : QStringLiteral("(missing)");
+                    valB = pB.size() > 1 ? pB.at(1).toString() : QStringLiteral("(missing)");
+                }
+
                 if (valA == valB) continue;
                 DiffEntry entry;
                 entry.type = DiffType::PropertyMismatch;
