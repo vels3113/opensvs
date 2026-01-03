@@ -247,9 +247,12 @@ void MainWindow::buildMenus()
     auto *openAction = new QAction(tr("&Open JSON..."), this);
     openAction->setShortcut(QKeySequence::Open);
     connect(openAction, &QAction::triggered, this, [this]() {
+        const QString startDir = mostRecentFile().isEmpty()
+            ? QStringLiteral("./resources/fixtures")
+            : QFileInfo(mostRecentFile()).absolutePath();
         const QString path = QFileDialog::getOpenFileName(this,
                                                          tr("Open netgen JSON report"),
-                                                         QStringLiteral("./resources/fixtures"),
+                                                         startDir,
                                                          tr("JSON files (*.json);;All files (*)"));
         if (!path.isEmpty()) {
             loadFile(path, true);
