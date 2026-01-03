@@ -297,7 +297,7 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
 
                 if (missingA != missingB) {
                     DiffEntry entry;
-                    entry.type = DiffType::DeviceMismatch;
+                    entry.type = DiffType::InstanceMismatch;
                     entry.subtype = DiffEntry::Subtype::MissingInstance;
                     entry.name = missingA ? instanceNameB : instanceNameA;
                     entry.layoutCell = sub.layoutCell;

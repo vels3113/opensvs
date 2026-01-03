@@ -115,7 +115,7 @@ void NetgenJsonParserTests::parses_tut3_fixture()
     QCOMPARE(sub.diffs[0].layoutCell, QStringLiteral("inverter"));
     QCOMPARE(sub.diffs[0].schematicCell, QStringLiteral("inverter"));
     QVERIFY(sub.diffs[0].details.contains(QStringLiteral("The following pins are connected only in Layout circuit: pfet:bulk (1) | The following pins are connected only in Schematics circuit: pfet:bulk (2), pfet:drain|source (2), pfet:gate (1)")));
-    QCOMPARE(sub.diffs[1].type, NetgenJsonParser::DiffType::DeviceMismatch);
+    QCOMPARE(sub.diffs[1].type, NetgenJsonParser::DiffType::InstanceMismatch);
     QCOMPARE(sub.diffs[1].subtype, NetgenJsonParser::DiffEntry::Subtype::MissingInstance);
     QCOMPARE(sub.diffs[1].name, QStringLiteral("pfet:XU3"));
     QVERIFY(sub.diffs[1].details.contains(QStringLiteral("The instance is present only in Schematics circuit")));
