@@ -173,6 +173,7 @@ void MainWindow::buildUi()
     typeFilter_->setObjectName(QStringLiteral("typeFilter"));
     typeFilter_->addItems({tr("All"),
                            tr("net_mismatch"),
+                           tr("instance_mismatch"),
                            tr("device_mismatch"),
                            tr("property_mismatch")});
     searchField_ = new QLineEdit(contentPage_);
