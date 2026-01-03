@@ -356,16 +356,18 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
             }
         }
 
-        report.summary.deviceMismatches += sub.summary.deviceMismatches;
-        report.summary.netMismatches += sub.summary.netMismatches;
-        report.summary.shorts += sub.summary.shorts;
-        report.summary.opens += sub.summary.opens;
-        report.summary.totalDevices += sub.summary.totalDevices;
-        report.summary.totalNets += sub.summary.totalNets;
-        report.summary.layoutCell = sub.layoutCell;
-        report.summary.schematicCell = sub.schematicCell;
-        report.circuits.push_back(sub);
-        ++circuitIdx;
+        if (!sub.diffs.isEmpty()) {
+            report.summary.deviceMismatches += sub.summary.deviceMismatches;
+            report.summary.netMismatches += sub.summary.netMismatches;
+            report.summary.shorts += sub.summary.shorts;
+            report.summary.opens += sub.summary.opens;
+            report.summary.totalDevices += sub.summary.totalDevices;
+            report.summary.totalNets += sub.summary.totalNets;
+            report.summary.layoutCell = sub.layoutCell;
+            report.summary.schematicCell = sub.schematicCell;
+            report.circuits.push_back(sub);
+            ++circuitIdx;
+        }
     }
 
     // Build lookup maps
