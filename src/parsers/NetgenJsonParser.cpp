@@ -376,18 +376,8 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
             }
         }
 
-        if (!sub.diffs.isEmpty()) {
-            report.summary.deviceMismatches += sub.summary.deviceMismatches;
-            report.summary.netMismatches += sub.summary.netMismatches;
-            report.summary.shorts += sub.summary.shorts;
-            report.summary.opens += sub.summary.opens;
-            report.summary.totalDevices += sub.summary.totalDevices;
-            report.summary.totalNets += sub.summary.totalNets;
-            report.summary.layoutCell = sub.layoutCell;
-            report.summary.schematicCell = sub.schematicCell;
-            report.circuits.push_back(sub);
-            ++circuitIdx;
-        }
+        report.circuits.push_back(sub);
+        ++circuitIdx;
     }
 
     // Build lookup maps
@@ -412,6 +402,74 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
             }
         };
 
+        for (const QString &name : parent.devicesA) {
+            linkChild(name);
+        }
+    }
+
+    // Determine which circuits to keep: circuits with diffs or with descendant diffs.
+    QHash<Report::Circuit*, bool> hasDiffsCache;
+    std::function<bool(Report::Circuit*)> hasDiffsRecursive = [&](Report::Circuit *c) -> bool {
+        if (!c) return false;
+        if (hasDiffsCache.contains(c)) return hasDiffsCache.value(c);
+        bool has = !c->diffs.isEmpty();
+        for (auto *child : c->subcircuits) {
+            if (hasDiffsRecursive(child)) {
+                has = true;
+            }
+        }
+        hasDiffsCache.insert(c, has);
+        return has;
+    };
+
+    QVector<Report::Circuit> kept;
+    kept.reserve(report.circuits.size());
+    for (auto &c : report.circuits) {
+        if (hasDiffsRecursive(&c)) {
+            kept.push_back(c);
+        }
+    }
+
+    // Rebuild maps and parent-child links for kept circuits and recalc indices/summaries.
+    report.summary = Summary{};
+    report.circuits.clear();
+    report.circuits.reserve(kept.size());
+    for (auto &c : kept) {
+        c.subcircuits.clear();
+        c.isTopLevel = true;
+        c.index = report.circuits.size();
+        for (auto &d : c.diffs) {
+            d.circuitIndex = c.index;
+        }
+        report.summary.deviceMismatches += c.summary.deviceMismatches;
+        report.summary.netMismatches += c.summary.netMismatches;
+        report.summary.shorts += c.summary.shorts;
+        report.summary.opens += c.summary.opens;
+        report.summary.totalDevices += c.summary.totalDevices;
+        report.summary.totalNets += c.summary.totalNets;
+        report.summary.layoutCell = c.layoutCell;
+        report.summary.schematicCell = c.schematicCell;
+        report.circuits.push_back(c);
+    }
+
+    layoutMap.clear();
+    schematicMap.clear();
+    for (auto &circuit : report.circuits) {
+        if (!circuit.layoutCell.isEmpty()) layoutMap.insert(circuit.layoutCell, &circuit);
+        if (!circuit.schematicCell.isEmpty()) schematicMap.insert(circuit.schematicCell, &circuit);
+    }
+    for (auto &parent : report.circuits) {
+        auto linkChild = [&](const QString &name) {
+            if (name.isEmpty()) return;
+            if (!parent.subcircuits.contains(name)) {
+                Report::Circuit *child = layoutMap.value(name, nullptr);
+                if (!child) child = schematicMap.value(name, nullptr);
+                if (child && child != &parent) {
+                    child->isTopLevel = false;
+                    parent.subcircuits.insert(name, child);
+                }
+            }
+        };
         for (const QString &name : parent.devicesA) {
             linkChild(name);
         }
