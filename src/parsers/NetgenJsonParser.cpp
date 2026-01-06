@@ -145,10 +145,7 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
             }
         }
 
-        QJsonArray badnetsArr = rootObj.value(QStringLiteral("badnets")).toArray();
-        if (badnetsArr.size() == 1 && badnetsArr.at(0).isArray()) {
-            badnetsArr = badnetsArr.at(0).toArray();
-        }
+        const QJsonArray badnetsArr = rootObj.value(QStringLiteral("badnets")).toArray();
 
         struct NetInfo {
             QString rawName;
@@ -197,34 +194,13 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
             }
         };
 
-        if (badnetsArr.size() == 2 && badnetsArr.at(0).isArray() && badnetsArr.at(1).isArray()) {
-            const QJsonArray netsListA = badnetsArr.at(0).toArray();
-            const QJsonArray netsListB = badnetsArr.at(1).toArray();
-            for (const QJsonValue &na : netsListA) {
-                if (na.isArray()) captureNet(na.toArray(), netsA);
+        for (const QJsonValue &val : badnetsArr) {
+            if (!val.isArray()) continue;
+            QJsonArray pairArr = val.toArray();
+            if (pairArr.size() == 1 && pairArr.at(0).isArray()) {
+                pairArr = pairArr.at(0).toArray();
             }
-            for (const QJsonValue &nb : netsListB) {
-                if (nb.isArray()) captureNet(nb.toArray(), netsB);
-            }
-        } else if (badnetsArr.size() == 1 && badnetsArr.first().isArray()) {
-            QJsonArray pairArr = badnetsArr.first().toArray();
             if (pairArr.size() == 2 && pairArr.at(0).isArray() && pairArr.at(1).isArray()) {
-                const QJsonArray netsListA = pairArr.at(0).toArray();
-                const QJsonArray netsListB = pairArr.at(1).toArray();
-                for (const QJsonValue &na : netsListA) {
-                    if (na.isArray()) captureNet(na.toArray(), netsA);
-                }
-                for (const QJsonValue &nb : netsListB) {
-                    if (nb.isArray()) captureNet(nb.toArray(), netsB);
-                }
-            }
-        } else {
-            for (const QJsonValue &val : badnetsArr) {
-                QJsonArray pairArr = val.toArray();
-                if (pairArr.size() == 1 && pairArr.at(0).isArray()) {
-                    pairArr = pairArr.at(0).toArray();
-                }
-                if (pairArr.size() < 2) continue;
                 const QJsonArray netsListA = pairArr.at(0).toArray();
                 const QJsonArray netsListB = pairArr.at(1).toArray();
                 for (const QJsonValue &na : netsListA) {
@@ -259,11 +235,10 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
                 if (!onlyA.isEmpty() || !onlyB.isEmpty()) {
                     DiffEntry entry;
                     entry.type = DiffType::NetMismatch;
-                    if (!onlyA.isEmpty() && !onlyB.isEmpty()) {
-                        entry.subtype = DiffEntry::Subtype::UnmatchedConnections;
-                    } else {
-                        entry.subtype = DiffEntry::Subtype::MissingConnection;
-                    }
+                    const bool bothSides = !onlyA.isEmpty() && !onlyB.isEmpty();
+                    entry.subtype = bothSides
+                            ? DiffEntry::Subtype::UnmatchedConnections
+                            : DiffEntry::Subtype::MissingConnection;
                     entry.name = !a.rawName.isEmpty() ? a.rawName : b.rawName;
                     entry.layoutCell = sub.layoutCell;
                     entry.schematicCell = sub.schematicCell;
@@ -407,7 +382,7 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
         }
     }
 
-    // Determine which circuits to keep: circuits with diffs or with descendant diffs.
+    // Determine which circuits to keep: those with diffs or with descendant diffs.
     QHash<Report::Circuit*, bool> hasDiffsCache;
     std::function<bool(Report::Circuit*)> hasDiffsRecursive = [&](Report::Circuit *c) -> bool {
         if (!c) return false;
@@ -430,7 +405,7 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
         }
     }
 
-    // Rebuild maps and parent-child links for kept circuits and recalc indices/summaries.
+    // Rebuild circuits, summaries, and parent-child links for kept circuits.
     report.summary = Summary{};
     report.circuits.clear();
     report.circuits.reserve(kept.size());
