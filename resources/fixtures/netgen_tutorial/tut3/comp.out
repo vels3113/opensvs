@@ -1,0 +1,67 @@
+
+Subcircuit summary:
+Circuit 1: inverter                        |Circuit 2: inverter                        
+-------------------------------------------|-------------------------------------------
+pfet (1)                                   |pfet (2) **Mismatch**                      
+nfet (1)                                   |nfet (1)                                   
+Number of devices: 2 **Mismatch**          |Number of devices: 3 **Mismatch**          
+Number of nets: 6                          |Number of nets: 6                          
+---------------------------------------------------------------------------------------
+NET mismatches: Class fragments follow (with fanout counts):
+Circuit 1: inverter                        |Circuit 2: inverter                        
+
+---------------------------------------------------------------------------------------
+Net: Vdd                                   |Net: Vdd                                   
+  pfet/bulk = 1                            |  pfet/bulk = 2                            
+                                           |  pfet/(drain|source) = 2                  
+                                           |  pfet/gate = 1                            
+---------------------------------------------------------------------------------------
+DEVICE mismatches: Class fragments follow (with node fanout counts):
+Circuit 1: inverter                        |Circuit 2: inverter                        
+
+---------------------------------------------------------------------------------------
+(no matching instance)                     |Instance: pfet:XU3                         
+                                           |  (drain,source) = (5,5)                   
+                                           |  gate = 5                                 
+                                           |  bulk = 5                                 
+                                           |                                           
+---------------------------------------------------------------------------------------
+Netlists do not match.
+Port matching may fail to disambiguate symmetries.
+  Flattening non-matched subcircuits inverter inverter
+
+Class bufferB.spice (1):  Merged 1 parallel devices.
+Subcircuit summary:
+Circuit 1: bufferA.spice                   |Circuit 2: bufferB.spice                   
+-------------------------------------------|-------------------------------------------
+pfet (2)                                   |pfet (4->3) **Mismatch**                   
+nfet (2)                                   |nfet (2)                                   
+Number of devices: 4 **Mismatch**          |Number of devices: 5 **Mismatch**          
+Number of nets: 5                          |Number of nets: 5                          
+---------------------------------------------------------------------------------------
+NET mismatches: Class fragments follow (with fanout counts):
+Circuit 1: bufferA.spice                   |Circuit 2: bufferB.spice                   
+
+---------------------------------------------------------------------------------------
+Net: Vdd                                   |Net: Vdd                                   
+  pfet/(drain|source) = 2                  |  pfet/(drain|source) = 4                  
+  pfet/bulk = 2                            |  pfet/bulk = 3                            
+                                           |  pfet/gate = 1                            
+---------------------------------------------------------------------------------------
+DEVICE mismatches: Class fragments follow (with node fanout counts):
+Circuit 1: bufferA.spice                   |Circuit 2: bufferB.spice                   
+
+---------------------------------------------------------------------------------------
+(no matching instance)                     |Instance: inverter:X1/pfet:XU3             
+                                           |  (drain,source) = (8,8)                   
+                                           |  gate = 8                                 
+                                           |  bulk = 8                                 
+                                           |                                           
+---------------------------------------------------------------------------------------
+Netlists do not match.
+Port matching may fail to disambiguate symmetries.
+Cells have no pins;  pin matching not needed.
+Device classes bufferA.spice and bufferB.spice are equivalent.
+
+Final result: Netlists do not match.
+Port matching may fail to disambiguate symmetries.
