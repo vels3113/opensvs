@@ -26,7 +26,7 @@ Use the helper to configure with Ninja (Qt6 prefix defaults are in CMakeLists):
 
 ```bash
 ./configure.sh
-cmake --build build
+cmake --build build/release
 ```
 
 Pass extra args as needed, e.g.:
@@ -37,7 +37,7 @@ Pass extra args as needed, e.g.:
 ## Tests
 
 ```bash
-ctest --test-dir build --output-on-failure
+ctest --test-dir build/release --output-on-failure
 ```
 ### Smoke tests (headless)
 - Offscreen (no display):

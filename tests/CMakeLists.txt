@@ -1,3 +1,20 @@
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+  add_compile_options(-fno-omit-frame-pointer)
+  if (ENABLE_ASAN)
+    add_link_options(-fsanitize=address)
+    add_compile_options(-fsanitize=address)
+  endif()
+  if (ENABLE_UBSAN)
+    add_link_options(-fsanitize=undefined)
+    add_compile_options(-fsanitize=undefined)
+  endif()
+  if (ENABLE_GLIBCXX_DEBUG AND CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    add_compile_definitions(_GLIBCXX_ASSERTIONS)
+    # For heavier checking you could use:
+    # add_compile_definitions(_GLIBCXX_DEBUG _GLIBCXX_DEBUG_PEDANTIC)
+  endif()
+endif()
+
 add_executable(netgenjson_parser_tests
     parsers/NetgenJsonParserTests.cpp
     ${CMAKE_SOURCE_DIR}/src/parsers/NetgenJsonParser.cpp

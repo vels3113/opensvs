@@ -26,13 +26,13 @@ jobs:
             ninja-build cmake
 
       - name: Configure
-        run: cmake -S . -B build -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+        run: ./configure.sh
 
       - name: Build
-        run: cmake --build build
+        run: cmake --build build/release
 
       - name: Smoke
         run: ./tests/smoke_offscreen.sh
 
       - name: QtTest
-        run: ctest --test-dir build --output-on-failure
+        run: ctest --test-dir build/release --output-on-failure
