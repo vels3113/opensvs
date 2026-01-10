@@ -6,4 +6,4 @@ set -euo pipefail
 
 options=${@:---preset=release}
 
-cmake -S . -G Ninja ${options}
+cmake -S . ${options}
