@@ -1,0 +1,62 @@
+name: Sanitizers
+
+on:
+  workflow_run:
+    workflows: ["Release CI"]
+    types:
+      - completed
+
+jobs:
+  sanitize:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        preset: [asan, ubsan]
+    env:
+      APT_PACKAGES: >-
+        clang qt6-base-dev qt6-base-dev-tools qt6-tools-dev qt6-tools-dev-tools
+        ninja-build cmake
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare deb-cache
+        run: |
+          mkdir -p ./deb-cache/archives ./deb-cache/lists
+
+      - name: Cache apt lists and archives
+        uses: actions/cache@v4
+        with:
+          path: ./deb-cache
+          key: ${{ runner.os }}-apt
+          restore-keys: |
+            ${{ runner.os }}-apt
+
+      - name: Restore apt cache directories
+        run: |
+          sudo mkdir -p /var/cache/apt/archives /var/lib/apt/lists
+          if [ -d ./deb-cache/archives ]; then
+            sudo cp -a ./deb-cache/archives/. /var/cache/apt/archives/ || true
+          fi
+          if [ -d ./deb-cache/lists ]; then
+            sudo cp -a ./deb-cache/lists/. /var/lib/apt/lists/ || true
+          fi
+
+      - name: Update apt
+        run: sudo apt-get update
+
+      - name: Install dependencies
+        run: |
+          export DEBIAN_FRONTEND=noninteractive
+          sudo apt-get install -y $APT_PACKAGES
+
+      - name: Configure
+        run: cmake --preset ${{ matrix.preset }} --fresh
+
+      - name: Build
+        run: cmake --build --preset ${{ matrix.preset }} --target tests
+
+      - name: Test
+        run: ctest --preset ${{ matrix.preset }} --output-on-failure

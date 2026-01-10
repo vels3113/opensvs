@@ -102,3 +102,12 @@ target_link_libraries(mainwindow_smoke_tests PRIVATE Qt6::Test Qt6::Core Qt6::Wi
 add_test(NAME mainwindow_smoke_tests
     COMMAND ${CMAKE_COMMAND} -E env QT_QPA_PLATFORM=offscreen XDG_RUNTIME_DIR=/tmp ${CMAKE_BINARY_DIR}/tests/mainwindow_smoke_tests
 )
+
+add_custom_target(tests
+    DEPENDS
+        netgenjson_parser_tests
+        diffentry_model_tests
+        difffilter_model_tests
+        circuit_tree_model_tests
+        mainwindow_smoke_tests
+)
