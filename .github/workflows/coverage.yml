@@ -99,7 +99,8 @@ jobs:
                '*/tests/*' \
                '*/build/*' \
                --output-file coverage_filtered.info \
-               --rc lcov_branch_coverage=1
+               --rc lcov_branch_coverage=1 \
+               --ignore-errors unused
 
           lcov --summary coverage_filtered.info --rc lcov_branch_coverage=1
 
