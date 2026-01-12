@@ -17,8 +17,9 @@ class DiffFilterProxyModel : public QSortFilterProxyModel {
         const QSet<int> &circuits); // empty set means no circuit filter
 
   protected:
-    bool filterAcceptsRow(int source_row,
-                          const QModelIndex &source_parent) const override;
+    auto
+    filterAcceptsRow(int source_row,
+                     const QModelIndex &source_parent) const -> bool override;
 
   private:
     QString typeFilter_;

@@ -33,13 +33,15 @@ void DiffFilterProxyModel::setAllowedCircuits(const QSet<int> &circuits) {
     invalidateFilter();
 }
 
-bool DiffFilterProxyModel::filterAcceptsRow(
-    int source_row, const QModelIndex &source_parent) const {
-    if (!sourceModel())
+auto DiffFilterProxyModel::filterAcceptsRow(
+    int source_row, const QModelIndex &source_parent) const -> bool {
+    if (sourceModel() == nullptr) {
         return true;
+    }
     const int cols = sourceModel()->columnCount(source_parent);
-    if (cols <= DiffEntryColumns::DETAILS)
+    if (cols <= DiffEntryColumns::DETAILS) {
         return true;
+    }
     if (source_row < 0 ||
         source_row >= sourceModel()->rowCount(source_parent)) {
         return false;
@@ -70,7 +72,7 @@ bool DiffFilterProxyModel::filterAcceptsRow(
 
     if (!typeFilter_.isEmpty() &&
         typeFilter_.compare(QStringLiteral("All"), Qt::CaseInsensitive) != 0) {
-        if (type.compare(typeFilter_, Qt::CaseInsensitive)) {
+        if (type.compare(typeFilter_, Qt::CaseInsensitive) != 0) {
             return false;
         }
     }

@@ -8,7 +8,7 @@ class CircuitTreeModelTests : public QObject {
     Q_OBJECT
 
   private slots:
-    void builds_tree_and_filters();
+    static void builds_tree_and_filters();
 };
 
 void CircuitTreeModelTests::builds_tree_and_filters() {

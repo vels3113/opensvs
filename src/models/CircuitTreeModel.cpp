@@ -10,9 +10,8 @@ void CircuitTreeModel::clear() {
     storage_.clear();
 }
 
-CircuitTreeModel::Node *
-CircuitTreeModel::buildNode(NetgenJsonParser::Report::Circuit *circuit,
-                            Node *parent) {
+auto CircuitTreeModel::buildNode(NetgenJsonParser::Report::Circuit *circuit,
+                                 Node *parent) -> CircuitTreeModel::Node * {
     auto holder = std::make_unique<Node>();
     holder->circuit = circuit;
     holder->parent = parent;
@@ -29,7 +28,7 @@ void CircuitTreeModel::setCircuits(
     beginResetModel();
     clear();
     circuits_ = circuits;
-    if (circuits_) {
+    if (circuits_ != nullptr) {
         for (auto &circuit : *circuits_) {
             if (circuit.isTopLevel) {
                 roots_.append(buildNode(&circuit, nullptr));
@@ -39,60 +38,74 @@ void CircuitTreeModel::setCircuits(
     endResetModel();
 }
 
-QModelIndex CircuitTreeModel::index(int row, int column,
-                                    const QModelIndex &parentIdx) const {
-    if (column != 0)
+auto CircuitTreeModel::index(
+    int row, int column, const QModelIndex &parentIdx) const -> QModelIndex {
+    if (column != 0) {
         return {};
+    }
     Node *parentNode = nodeFromIndex(parentIdx);
-    const auto &vec = parentNode ? parentNode->children : roots_;
-    if (row < 0 || row >= vec.size())
+    const auto &vec = (parentNode != nullptr) ? parentNode->children : roots_;
+    if (row < 0 || row >= vec.size()) {
         return {};
+    }
     return createIndex(row, column, vec.at(row));
 }
 
-QModelIndex CircuitTreeModel::parent(const QModelIndex &child) const {
-    if (!child.isValid())
+auto CircuitTreeModel::parent(const QModelIndex &child) const -> QModelIndex {
+    if (!child.isValid()) {
         return {};
+    }
     Node *node = static_cast<Node *>(child.internalPointer());
-    if (!node || !node->parent)
+    if ((node == nullptr) || (node->parent == nullptr)) {
         return {};
+    }
     Node *parentNode = node->parent;
     Node *grand = parentNode->parent;
-    const auto &siblings = grand ? grand->children : roots_;
+    const auto &siblings = (grand != nullptr) ? grand->children : roots_;
     const int row = siblings.indexOf(parentNode);
-    if (row < 0)
+    if (row < 0) {
         return {};
+    }
     return createIndex(row, 0, parentNode);
 }
 
-int CircuitTreeModel::rowCount(const QModelIndex &parentIdx) const {
-    if (parentIdx.column() > 0)
+auto CircuitTreeModel::rowCount(const QModelIndex &parentIdx) const -> int {
+    if (parentIdx.column() > 0) {
         return 0;
+    }
     Node *parentNode = nodeFromIndex(parentIdx);
-    return parentNode ? parentNode->children.size() : roots_.size();
+    return (parentNode != nullptr) ? parentNode->children.size()
+                                   : roots_.size();
 }
 
-int CircuitTreeModel::columnCount(const QModelIndex &) const { return 1; }
+auto CircuitTreeModel::columnCount(const QModelIndex & /*parent*/) const
+    -> int {
+    return 1;
+}
 
-QVariant CircuitTreeModel::data(const QModelIndex &idx, int role) const {
-    if (!idx.isValid() || role != Qt::DisplayRole)
+auto CircuitTreeModel::data(const QModelIndex &idx,
+                            int role) const -> QVariant {
+    if (!idx.isValid() || role != Qt::DisplayRole) {
         return {};
+    }
     Node *node = static_cast<Node *>(idx.internalPointer());
-    if (!node || !node->circuit)
+    if ((node == nullptr) || (node->circuit == nullptr)) {
         return {};
+    }
     const auto *c = node->circuit;
     return QStringLiteral("%1 vs %2").arg(c->layoutCell, c->schematicCell);
 }
 
-NetgenJsonParser::Report::Circuit *
-CircuitTreeModel::circuitForIndex(const QModelIndex &idx) const {
+auto CircuitTreeModel::circuitForIndex(const QModelIndex &idx) const
+    -> NetgenJsonParser::Report::Circuit * {
     Node *node = nodeFromIndex(idx);
-    return node ? node->circuit : nullptr;
+    return (node != nullptr) ? node->circuit : nullptr;
 }
 
 CircuitTreeModel::Node *
-CircuitTreeModel::nodeFromIndex(const QModelIndex &idx) const {
-    if (!idx.isValid())
+CircuitTreeModel::nodeFromIndex(const QModelIndex &idx) {
+    if (!idx.isValid()) {
         return nullptr;
+    }
     return static_cast<Node *>(idx.internalPointer());
 }

@@ -3,21 +3,22 @@
 
 DiffEntryModel::DiffEntryModel(QObject *parent) : QAbstractTableModel(parent) {}
 
-int DiffEntryModel::rowCount(const QModelIndex &parent) const {
+auto DiffEntryModel::rowCount(const QModelIndex &parent) const -> int {
     if (parent.isValid()) {
         return 0;
     }
     return diffs_.size();
 }
 
-int DiffEntryModel::columnCount(const QModelIndex &parent) const {
+auto DiffEntryModel::columnCount(const QModelIndex &parent) const -> int {
     if (parent.isValid()) {
         return 0;
     }
     return DiffEntryColumns::NUM_COLUMNS;
 }
 
-QVariant DiffEntryModel::data(const QModelIndex &index, int role) const {
+auto DiffEntryModel::data(const QModelIndex &index,
+                          int role) const -> QVariant {
     if (!index.isValid()) {
         return {};
     }
@@ -50,8 +51,8 @@ QVariant DiffEntryModel::data(const QModelIndex &index, int role) const {
     }
 }
 
-QVariant DiffEntryModel::headerData(int section, Qt::Orientation orientation,
-                                    int role) const {
+auto DiffEntryModel::headerData(int section, Qt::Orientation orientation,
+                                int role) const -> QVariant {
     if (orientation != Qt::Horizontal || role != Qt::DisplayRole) {
         return {};
     }

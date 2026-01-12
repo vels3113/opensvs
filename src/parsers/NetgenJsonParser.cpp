@@ -11,8 +11,7 @@
 #include <qjsonarray.h>
 #include <qjsonvalue.h>
 
-NetgenJsonParser::Report
-NetgenJsonParser::parseFile(const QString &path) const {
+NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) {
     Report report;
 
     QFile file(path);
@@ -45,15 +44,18 @@ NetgenJsonParser::parseFile(const QString &path) const {
     report.circuits.reserve(arr.size());
     int circuitIdx = 0;
     for (const QJsonValue &rootVal : arr) {
-        if (!rootVal.isObject())
+        if (!rootVal.isObject()) {
             continue;
+        }
         const QJsonObject rootObj = rootVal.toObject();
         const QJsonValue namesVal = rootObj.value(QStringLiteral("name"));
-        if (!namesVal.isArray())
+        if (!namesVal.isArray()) {
             continue;
+        }
         const QJsonArray namesArr = namesVal.toArray();
-        if (namesArr.isEmpty())
+        if (namesArr.isEmpty()) {
             continue;
+        }
         Report::Circuit sub;
         sub.index = circuitIdx;
 
@@ -99,19 +101,21 @@ NetgenJsonParser::parseFile(const QString &path) const {
         }
 
         sub.layoutCell =
-            namesArr.size() > 0 ? namesArr.at(0).toString() : QString();
+            !namesArr.empty() ? namesArr.at(0).toString() : QString();
         sub.schematicCell =
             namesArr.size() > 1 ? namesArr.at(1).toString() : QString();
         const QJsonArray propertiesArr =
             rootObj.value(QStringLiteral("properties")).toArray();
         for (const QJsonValue &val : propertiesArr) {
             const QJsonArray pairArr = val.toArray();
-            if (pairArr.size() < 2)
+            if (pairArr.size() < 2) {
                 continue;
+            }
             const QJsonArray deviceA = pairArr.at(0).toArray();
             const QJsonArray deviceB = pairArr.at(1).toArray();
-            if (deviceA.size() < 2 || deviceB.size() < 2)
+            if (deviceA.size() < 2 || deviceB.size() < 2) {
                 continue;
+            }
             const QString nameA = deviceA.at(0).toString();
             const QString nameB = deviceB.at(0).toString();
             const QJsonArray paramsA = deviceA.at(1).toArray();
@@ -160,8 +164,9 @@ NetgenJsonParser::parseFile(const QString &path) const {
                     valB = pB.at(1).toString();
                 }
 
-                if (valA == valB)
+                if (valA == valB) {
                     continue;
+                }
                 DiffEntry entry;
                 entry.type = DiffType::PropertyMismatch;
                 entry.subtype = DiffEntry::Subtype::MissingParameter;
@@ -211,8 +216,9 @@ NetgenJsonParser::parseFile(const QString &path) const {
         };
         auto captureNet = [&](const QJsonArray &netArr,
                               QHash<QString, NetInfo> &dest) {
-            if (netArr.size() < 2)
+            if (netArr.size() < 2) {
                 return;
+            }
             NetInfo info;
             info.rawName = netArr.at(0).toString();
             if (info.rawName.contains(QStringLiteral("(no matching net)"),
@@ -232,8 +238,9 @@ NetgenJsonParser::parseFile(const QString &path) const {
         };
 
         for (const QJsonValue &val : badnetsArr) {
-            if (!val.isArray())
+            if (!val.isArray()) {
                 continue;
+            }
             QJsonArray pairArr = val.toArray();
             if (pairArr.size() == 1 && pairArr.at(0).isArray()) {
                 pairArr = pairArr.at(0).toArray();
@@ -243,12 +250,14 @@ NetgenJsonParser::parseFile(const QString &path) const {
                 const QJsonArray netsListA = pairArr.at(0).toArray();
                 const QJsonArray netsListB = pairArr.at(1).toArray();
                 for (const QJsonValue &na : netsListA) {
-                    if (na.isArray())
+                    if (na.isArray()) {
                         captureNet(na.toArray(), netsA);
+                    }
                 }
                 for (const QJsonValue &nb : netsListB) {
-                    if (nb.isArray())
+                    if (nb.isArray()) {
                         captureNet(nb.toArray(), netsB);
+                    }
                 }
             }
         }
@@ -423,8 +432,9 @@ NetgenJsonParser::parseFile(const QString &path) const {
                 }
             } else {
                 for (const QJsonValue &val : badElementsArr) {
-                    if (!val.isArray())
+                    if (!val.isArray()) {
                         continue;
+                    }
                     QJsonArray pair = val.toArray();
                     if (pair.size() == 1 && pair.at(0).isArray()) {
                         pair = pair.at(0).toArray();
@@ -446,22 +456,26 @@ NetgenJsonParser::parseFile(const QString &path) const {
     QHash<QString, Report::Circuit *> layoutMap;
     QHash<QString, Report::Circuit *> schematicMap;
     for (auto &circuit : report.circuits) {
-        if (!circuit.layoutCell.isEmpty())
+        if (!circuit.layoutCell.isEmpty()) {
             layoutMap.insert(circuit.layoutCell, &circuit);
-        if (!circuit.schematicCell.isEmpty())
+        }
+        if (!circuit.schematicCell.isEmpty()) {
             schematicMap.insert(circuit.schematicCell, &circuit);
+        }
     }
 
     // Build parent-child links based on device list references
     for (auto &parent : report.circuits) {
         auto linkChild = [&](const QString &name) {
-            if (name.isEmpty())
+            if (name.isEmpty()) {
                 return;
+            }
             if (!parent.subcircuits.contains(name)) {
                 Report::Circuit *child = layoutMap.value(name, nullptr);
-                if (!child)
+                if (child == nullptr) {
                     child = schematicMap.value(name, nullptr);
-                if (child && child != &parent) {
+                }
+                if ((child != nullptr) && child != &parent) {
                     child->isTopLevel = false;
                     parent.subcircuits.insert(name, child);
                 }
@@ -478,10 +492,12 @@ NetgenJsonParser::parseFile(const QString &path) const {
     QHash<Report::Circuit *, bool> hasDiffsCache;
     std::function<bool(Report::Circuit *)> hasDiffsRecursive =
         [&](Report::Circuit *c) -> bool {
-        if (!c)
+        if (c == nullptr) {
             return false;
-        if (hasDiffsCache.contains(c))
+        }
+        if (hasDiffsCache.contains(c)) {
             return hasDiffsCache.value(c);
+        }
         bool has = !c->diffs.isEmpty();
         for (auto *child : c->subcircuits) {
             if (hasDiffsRecursive(child)) {
@@ -525,20 +541,24 @@ NetgenJsonParser::parseFile(const QString &path) const {
     layoutMap.clear();
     schematicMap.clear();
     for (auto &circuit : report.circuits) {
-        if (!circuit.layoutCell.isEmpty())
+        if (!circuit.layoutCell.isEmpty()) {
             layoutMap.insert(circuit.layoutCell, &circuit);
-        if (!circuit.schematicCell.isEmpty())
+        }
+        if (!circuit.schematicCell.isEmpty()) {
             schematicMap.insert(circuit.schematicCell, &circuit);
+        }
     }
     for (auto &parent : report.circuits) {
         auto linkChild = [&](const QString &name) {
-            if (name.isEmpty())
+            if (name.isEmpty()) {
                 return;
+            }
             if (!parent.subcircuits.contains(name)) {
                 Report::Circuit *child = layoutMap.value(name, nullptr);
-                if (!child)
+                if (child == nullptr) {
                     child = schematicMap.value(name, nullptr);
-                if (child && child != &parent) {
+                }
+                if ((child != nullptr) && child != &parent) {
                     child->isTopLevel = false;
                     parent.subcircuits.insert(name, child);
                 }
@@ -553,7 +573,8 @@ NetgenJsonParser::parseFile(const QString &path) const {
     return report;
 }
 
-QString NetgenJsonParser::toTypeString(NetgenJsonParser::DiffType type) {
+auto NetgenJsonParser::toTypeString(NetgenJsonParser::DiffType type)
+    -> QString {
     switch (type) {
     case NetgenJsonParser::DiffType::NetMismatch:
         return QStringLiteral("net_mismatch");
@@ -569,8 +590,8 @@ QString NetgenJsonParser::toTypeString(NetgenJsonParser::DiffType type) {
     }
 }
 
-QString NetgenJsonParser::toSubtypeString(
-    NetgenJsonParser::DiffEntry::Subtype subtype) {
+auto NetgenJsonParser::toSubtypeString(
+    NetgenJsonParser::DiffEntry::Subtype subtype) -> QString {
     switch (subtype) {
     case DiffEntry::Subtype::MissingParameter:
         return QStringLiteral("missing parameter");

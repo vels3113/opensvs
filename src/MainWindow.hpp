@@ -30,7 +30,7 @@ class MainWindow : public QMainWindow {
   public:
     explicit MainWindow(QWidget *parent = nullptr);
 
-    bool loadFile(const QString &path, bool showError = false);
+    auto loadFile(const QString &path, bool showError = false) -> bool;
 
   private:
     void buildUi();
@@ -43,12 +43,12 @@ class MainWindow : public QMainWindow {
     void appendLogToDisk(const QString &line);
     void rebuildRecentFilesMenu();
     void openLogDialog();
-    QString logFilePath() const;
+    static auto logFilePath() -> QString;
     void loadRecentFiles();
     void saveRecentFiles() const;
-    QString recentFilesPath() const;
+    static auto recentFilesPath() -> QString;
     void updateRecentButtons();
-    QString mostRecentFile() const;
+    auto mostRecentFile() const -> QString;
     void ensureLogDock();
     void refreshLogView();
     void openLvsDialog();

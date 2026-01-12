@@ -8,11 +8,11 @@ class NetgenJsonParserTests : public QObject {
     Q_OBJECT
 
   private slots:
-    void parses_sample_fixture();
-    void parses_tut2_fixture();
-    void parses_tut3_fixture();
-    void parses_tut6_fixture_instance_mismatches();
-    void fails_on_invalid_json();
+    static void parses_sample_fixture();
+    static void parses_tut2_fixture();
+    static void parses_tut3_fixture();
+    static void parses_tut6_fixture_instance_mismatches();
+    static void fails_on_invalid_json();
 };
 
 void NetgenJsonParserTests::parses_sample_fixture() {

@@ -7,7 +7,7 @@ class DiffEntryModelTests : public QObject {
     Q_OBJECT
 
   private slots:
-    void populates_rows_and_columns();
+    static void populates_rows_and_columns();
 };
 
 void DiffEntryModelTests::populates_rows_and_columns() {

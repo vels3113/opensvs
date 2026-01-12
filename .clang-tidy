@@ -4,7 +4,8 @@ Checks: >
   readability-*,
   modernize-*,
   cppcoreguidelines-*,
-  -readability-function-cognitive-complexity
+  -readability-function-cognitive-complexity,
+  -modernize-use-nodiscard
 
 WarningsAsErrors: "*"
 

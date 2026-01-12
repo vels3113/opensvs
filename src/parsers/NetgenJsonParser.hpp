@@ -62,8 +62,8 @@ class NetgenJsonParser {
         QVector<Circuit> circuits;
     };
 
-    Report parseFile(const QString &path) const;
+    static auto parseFile(const QString &path) -> Report;
 
-    static QString toTypeString(DiffType type);
-    static QString toSubtypeString(DiffEntry::Subtype subtype);
+    static auto toTypeString(DiffType type) -> QString;
+    static auto toSubtypeString(DiffEntry::Subtype subtype) -> QString;
 };

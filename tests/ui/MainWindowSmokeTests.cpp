@@ -13,7 +13,7 @@ class MainWindowSmokeTests : public QObject {
     Q_OBJECT
 
   private slots:
-    void shows_welcome_and_populates_after_load();
+    static void shows_welcome_and_populates_after_load();
 };
 
 void MainWindowSmokeTests::shows_welcome_and_populates_after_load() {
@@ -37,13 +37,13 @@ void MainWindowSmokeTests::shows_welcome_and_populates_after_load() {
     QVERIFY(table->model());
     QCOMPARE(table->model()->rowCount(), 16);
 
-    auto devices_mismatches =
+    auto *devices_mismatches =
         window.findChild<QLabel *>(QStringLiteral("summary_device_mismatches"));
-    auto nets_mismatches =
+    auto *nets_mismatches =
         window.findChild<QLabel *>(QStringLiteral("summary_net_mismatches"));
-    auto totalDevices =
+    auto *totalDevices =
         window.findChild<QLabel *>(QStringLiteral("summary_total_devices"));
-    auto totalNets =
+    auto *totalNets =
         window.findChild<QLabel *>(QStringLiteral("summary_total_nets"));
     QVERIFY(devices_mismatches && nets_mismatches && totalDevices && totalNets);
 

@@ -13,16 +13,18 @@ class CircuitTreeModel : public QAbstractItemModel {
     explicit CircuitTreeModel(QObject *parent = nullptr);
 
     void setCircuits(QVector<NetgenJsonParser::Report::Circuit> *circuits);
-    QModelIndex index(int row, int column,
-                      const QModelIndex &parent = QModelIndex()) const override;
-    QModelIndex parent(const QModelIndex &child) const override;
-    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
-    int columnCount(const QModelIndex &parent = QModelIndex()) const override;
-    QVariant data(const QModelIndex &index,
-                  int role = Qt::DisplayRole) const override;
+    auto index(int row, int column, const QModelIndex &parent = QModelIndex())
+        const -> QModelIndex override;
+    auto parent(const QModelIndex &child) const -> QModelIndex override;
+    auto
+    rowCount(const QModelIndex &parent = QModelIndex()) const -> int override;
+    auto columnCount(const QModelIndex &parent = QModelIndex()) const
+        -> int override;
+    auto data(const QModelIndex &index,
+              int role = Qt::DisplayRole) const -> QVariant override;
 
-    NetgenJsonParser::Report::Circuit *
-    circuitForIndex(const QModelIndex &idx) const;
+    auto circuitForIndex(const QModelIndex &idx) const
+        -> NetgenJsonParser::Report::Circuit *;
 
   private:
     struct Node {
@@ -36,6 +38,7 @@ class CircuitTreeModel : public QAbstractItemModel {
     mutable std::vector<std::unique_ptr<Node>> storage_;
 
     void clear();
-    Node *buildNode(NetgenJsonParser::Report::Circuit *circuit, Node *parent);
-    Node *nodeFromIndex(const QModelIndex &idx) const;
+    auto buildNode(NetgenJsonParser::Report::Circuit *circuit,
+                   Node *parent) -> Node *;
+    static auto nodeFromIndex(const QModelIndex &idx) -> Node *;
 };

@@ -5,7 +5,7 @@
 
 #include "MainWindow.hpp"
 
-int main(int argc, char *argv[]) {
+auto main(int argc, char *argv[]) -> int {
     QApplication app(argc, argv);
     QCoreApplication::setApplicationName(QStringLiteral("opensvs"));
     QCoreApplication::setApplicationVersion(QStringLiteral("0.3"));
@@ -32,5 +32,5 @@ int main(int argc, char *argv[]) {
     }
 
     window.show();
-    return app.exec();
+    return QApplication::exec();
 }

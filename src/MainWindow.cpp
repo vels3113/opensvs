@@ -53,7 +53,7 @@ MainWindow::MainWindow(QWidget *parent)
     buildUi();
     buildMenus();
     ensureLvsDock();
-    if (lvsDock_) {
+    if (lvsDock_ != nullptr) {
         lvsDock_->show();
         lvsDock_->setFloating(false);
     }
@@ -61,7 +61,7 @@ MainWindow::MainWindow(QWidget *parent)
     logEvent(tr("Application started"));
 }
 
-bool MainWindow::loadFile(const QString &path, bool showError) {
+auto MainWindow::loadFile(const QString &path, bool showError) -> bool {
     NetgenJsonParser parser;
     auto report = parser.parseFile(path);
     if (!report.ok) {
@@ -73,7 +73,7 @@ bool MainWindow::loadFile(const QString &path, bool showError) {
 
     circuits_ = std::move(report.circuits);
     circuitTreeModel_->setCircuits(&circuits_);
-    if (circuitTree_ && circuitTreeModel_->rowCount() > 0) {
+    if ((circuitTree_ != nullptr) && circuitTreeModel_->rowCount() > 0) {
         const QModelIndex rootIndex = circuitTreeModel_->index(0, 0);
         circuitTree_->setCurrentIndex(rootIndex);
         applyCircuitFilter(rootIndex);
@@ -108,7 +108,7 @@ bool MainWindow::loadFile(const QString &path, bool showError) {
         rebuildRecentFilesMenu();
         saveRecentFiles();
     }
-    if (stack_ && contentPage_) {
+    if ((stack_ != nullptr) && (contentPage_ != nullptr)) {
         stack_->setCurrentWidget(contentPage_);
     }
     return true;
@@ -289,10 +289,12 @@ void MainWindow::setSummary(int device, int net, int shorts, int opens,
                             int totalDevices, int totalNets,
                             const QString &layoutCell,
                             const QString &schematicCell) {
-    if (layoutCellLabel_)
+    if (layoutCellLabel_ != nullptr) {
         layoutCellLabel_->setText(layoutCell);
-    if (schematicCellLabel_)
+    }
+    if (schematicCellLabel_ != nullptr) {
         schematicCellLabel_->setText(schematicCell);
+    }
     deviceMismatchLabel_->setText(QString::number(device));
     netMismatchLabel_->setText(QString::number(net));
     shortsLabel_->setText(QString::number(shorts));
@@ -324,12 +326,13 @@ void MainWindow::logEvent(const QString &msg) {
 
 void MainWindow::appendLogToDisk(const QString &line) {
     const QString path = logFilePath();
-    if (path.isEmpty())
+    if (path.isEmpty()) {
         return;
+    }
 
     QFile f(path);
     if (f.size() > 1024 * 1024) { // rotate at ~1MB
-        f.remove(path + QStringLiteral(".1"));
+        QFile::remove(path + QStringLiteral(".1"));
         f.rename(path + QStringLiteral(".1"));
     }
     if (f.open(QIODevice::Append | QIODevice::Text)) {
@@ -339,8 +342,9 @@ void MainWindow::appendLogToDisk(const QString &line) {
 }
 
 void MainWindow::rebuildRecentFilesMenu() {
-    if (!recentMenu_)
+    if (recentMenu_ == nullptr) {
         return;
+    }
     recentMenu_->clear();
     if (recentFiles_.isEmpty()) {
         QAction *empty = recentMenu_->addAction(tr("No recent files"));
@@ -362,7 +366,7 @@ void MainWindow::openLogDialog() {
     logDock_->activateWindow();
 }
 
-QString MainWindow::logFilePath() const {
+QString MainWindow::logFilePath() {
     const QString dir =
         QStandardPaths::writableLocation(QStandardPaths::TempLocation);
     if (dir.isEmpty()) {
@@ -373,8 +377,9 @@ QString MainWindow::logFilePath() const {
 
 void MainWindow::loadRecentFiles() {
     const QString path = recentFilesPath();
-    if (path.isEmpty())
+    if (path.isEmpty()) {
         return;
+    }
     QFile f(path);
     if (!f.open(QIODevice::ReadOnly | QIODevice::Text)) {
         return;
@@ -396,8 +401,9 @@ void MainWindow::loadRecentFiles() {
 
 void MainWindow::saveRecentFiles() const {
     const QString path = recentFilesPath();
-    if (path.isEmpty())
+    if (path.isEmpty()) {
         return;
+    }
     QDir().mkpath(QFileInfo(path).absolutePath());
     QFile f(path);
     if (f.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
@@ -408,11 +414,12 @@ void MainWindow::saveRecentFiles() const {
     }
 }
 
-QString MainWindow::recentFilesPath() const {
+QString MainWindow::recentFilesPath() {
     const QString dir =
         QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
-    if (dir.isEmpty())
+    if (dir.isEmpty()) {
         return {};
+    }
     return dir + QStringLiteral("/opensvs_recent.txt");
 }
 
@@ -420,15 +427,17 @@ void MainWindow::updateRecentButtons() {
     // No buttons to toggle (load recent removed); kept for future hook.
 }
 
-QString MainWindow::mostRecentFile() const {
-    if (recentFiles_.isEmpty())
+auto MainWindow::mostRecentFile() const -> QString {
+    if (recentFiles_.isEmpty()) {
         return {};
+    }
     return recentFiles_.front();
 }
 
 void MainWindow::ensureLogDock() {
-    if (logDock_)
+    if (logDock_ != nullptr) {
         return;
+    }
     logDock_ = new QDockWidget(tr("Session Log"), this);
     logDock_->setObjectName(QStringLiteral("logDock"));
     logDock_->setFeatures(QDockWidget::DockWidgetClosable |
@@ -444,23 +453,26 @@ void MainWindow::ensureLogDock() {
 }
 
 void MainWindow::refreshLogView() {
-    if (logView_) {
+    if (logView_ != nullptr) {
         logView_->setPlainText(logLines_.join('\n'));
         logView_->moveCursor(QTextCursor::End);
     }
 }
 
 void MainWindow::applyCircuitFilter(const QModelIndex &index) {
-    if (!circuitTreeModel_ || !proxyModel_)
+    if ((circuitTreeModel_ == nullptr) || (proxyModel_ == nullptr)) {
         return;
+    }
 
     QSet<int> allowed;
     auto gather = [&](auto &&self,
                       NetgenJsonParser::Report::Circuit *circuit) -> void {
-        if (!circuit)
+        if (!circuit) {
             return;
-        if (circuit->index >= 0)
+        }
+        if (circuit->index >= 0) {
             allowed.insert(circuit->index);
+        }
         for (auto *child : circuit->subcircuits) {
             self(self, child);
         }
@@ -468,7 +480,7 @@ void MainWindow::applyCircuitFilter(const QModelIndex &index) {
 
     NetgenJsonParser::Report::Circuit *c =
         circuitTreeModel_->circuitForIndex(index);
-    if (c) {
+    if (c != nullptr) {
         gather(gather, c);
     } else {
         allowed.clear();
@@ -478,7 +490,7 @@ void MainWindow::applyCircuitFilter(const QModelIndex &index) {
 
 void MainWindow::openLvsDialog() {
     ensureLvsDock();
-    if (lvsDock_) {
+    if (lvsDock_ != nullptr) {
         lvsDock_->show();
         lvsDock_->raise();
         lvsDock_->activateWindow();
@@ -486,8 +498,9 @@ void MainWindow::openLvsDialog() {
 }
 
 void MainWindow::ensureLvsDock() {
-    if (lvsDock_)
+    if (lvsDock_ != nullptr) {
         return;
+    }
 
     lvsDock_ = new QDockWidget(tr("LVS"), this);
     lvsDock_->setObjectName(QStringLiteral("lvsDock"));
@@ -520,7 +533,7 @@ void MainWindow::ensureLvsDock() {
                 lvsLastDir_ = QFileInfo(path).absolutePath();
             }
         });
-        if (target) {
+        if (target != nullptr) {
             *target = edit;
         }
         return rowWidget;
@@ -542,8 +555,10 @@ void MainWindow::ensureLvsDock() {
         buttons->addButton(tr("Run"), QDialogButtonBox::AcceptRole);
     connect(buttons, &QDialogButtonBox::rejected, lvsDock_, &QDockWidget::hide);
     connect(runButton, &QPushButton::clicked, this, [this]() {
-        if (!lvsLayoutEdit_ || !lvsSchematicEdit_ || !lvsRulesEdit_)
+        if ((lvsLayoutEdit_ == nullptr) || (lvsSchematicEdit_ == nullptr) ||
+            (lvsRulesEdit_ == nullptr)) {
             return;
+        }
 
         const QString layout = lvsLayoutEdit_->text().trimmed();
         const QString schematic = lvsSchematicEdit_->text().trimmed();
@@ -609,7 +624,8 @@ void MainWindow::ensureLvsDock() {
             return;
         }
 
-        if (loadFile(jsonPath, true) && stack_ && contentPage_) {
+        if (loadFile(jsonPath, true) && (stack_ != nullptr) &&
+            (contentPage_ != nullptr)) {
             stack_->setCurrentWidget(contentPage_);
         }
     });

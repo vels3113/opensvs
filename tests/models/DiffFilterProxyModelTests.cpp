@@ -7,7 +7,7 @@ class DiffFilterProxyModelTests : public QObject {
     Q_OBJECT
 
   private slots:
-    void filters_by_type_and_search();
+    static void filters_by_type_and_search();
 };
 
 void DiffFilterProxyModelTests::filters_by_type_and_search() {
