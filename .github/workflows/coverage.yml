@@ -1,0 +1,112 @@
+name: Code Coverage
+
+on:
+  workflow_run:
+    workflows: ["Sanitizers"]
+    types:
+      - completed
+
+jobs:
+  coverage:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    env:
+      APT_PACKAGES: >-
+        qt6-base-dev qt6-base-dev-tools qt6-tools-dev qt6-tools-dev-tools
+        ninja-build cmake lcov g++ ccache
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare deb-cache
+        run: |
+          mkdir -p ./deb-cache/archives ./deb-cache/lists
+
+      - name: Cache apt lists and archives
+        uses: actions/cache@v4
+        with:
+          path: ./deb-cache
+          key: ${{ runner.os }}-apt
+          restore-keys: |
+            ${{ runner.os }}-apt
+
+      - name: Restore apt cache directories
+        run: |
+          sudo mkdir -p /var/cache/apt/archives /var/lib/apt/lists
+          if [ -d ./deb-cache/archives ]; then
+            sudo cp -a ./deb-cache/archives/. /var/cache/apt/archives/ || true
+          fi
+          if [ -d ./deb-cache/lists ]; then
+            sudo cp -a ./deb-cache/lists/. /var/lib/apt/lists/ || true
+          fi
+
+      - name: Update apt
+        run: sudo apt-get update
+
+      - name: Install dependencies
+        run: |
+          export DEBIAN_FRONTEND=noninteractive
+          sudo apt-get install -y $APT_PACKAGES
+
+      - name: Save apt cache directories
+        run: |
+          sudo cp -a /var/cache/apt/archives/*.deb ./deb-cache/archives/ 2>/dev/null || true
+          sudo cp -a /var/lib/apt/lists/archive* ./deb-cache/lists/ 2>/dev/null || true
+
+      - name: Prepare ccache directory
+        run: mkdir -p ./ccache/coverage
+
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: /home/runner/work/opensvs/opensvs/ccache/coverage
+          key: ${{ runner.os }}-ccache-coverage-${{ github.ref }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-coverage-
+
+      - name: Cache CMake configuration
+        uses: actions/cache@v4
+        with:
+          path: build/coverage/CMakeCache.txt
+          key: ${{ runner.os }}-cmake-coverage-${{ hashFiles('**/CMakeLists.txt', 'CMakePresets.json') }}
+          restore-keys: |
+            ${{ runner.os }}-cmake-coverage-
+
+      - name: Configure
+        run: cmake --preset coverage -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+        env:
+          CCACHE_DIR: /home/runner/work/opensvs/opensvs/ccache/coverage
+          CCACHE_BASEDIR: ${{ github.workspace }}
+
+      - name: Build
+        run: cmake --build --preset coverage --target tests
+        env:
+          CCACHE_DIR: /home/runner/work/opensvs/opensvs/ccache/coverage
+          CCACHE_BASEDIR: ${{ github.workspace }}
+
+      - name: Run tests
+        run: ctest --preset coverage --output-on-failure
+
+      - name: Generate coverage report
+        run: |
+          lcov --capture \
+               --directory build/coverage \
+               --output-file coverage.info \
+               --rc lcov_branch_coverage=1
+
+          lcov --remove coverage.info \
+               '/usr/*' \
+               '*/tests/*' \
+               '*/build/*' \
+               --output-file coverage_filtered.info \
+               --rc lcov_branch_coverage=1
+
+          lcov --summary coverage_filtered.info --rc lcov_branch_coverage=1
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage_filtered.info
+          flags: unittests
+          name: codecov-opensvs
+          fail_ci_if_error: false
