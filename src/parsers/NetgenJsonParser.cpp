@@ -118,18 +118,26 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
                 QString valB = QStringLiteral("(missing)");
 
                 if (missingParamA && !missingParamB) {
-                    param = paramNameB.isEmpty() ? QStringLiteral("unknown") : paramNameB;
-                    valA = pA.size() > 1 ? pA.at(1).toString() : QStringLiteral("(missing)");
-                    valB = pB.size() > 1 ? pB.at(1).toString() : QStringLiteral("(missing)");
+                    if (!paramNameB.isEmpty()) {
+                        param = paramNameB;
+                    }
                 } else if (missingParamB && !missingParamA) {
-                    param = paramNameA.isEmpty() ? QStringLiteral("unknown") : paramNameA;
-                    valA = pA.size() > 1 ? pA.at(1).toString() : QStringLiteral("(missing)");
-                    valB = pB.size() > 1 ? pB.at(1).toString() : QStringLiteral("(missing)");
+                    if (!paramNameA.isEmpty()) {
+                        param = paramNameA;
+                    }
                 } else {
-                    param = !paramNameA.isEmpty() ? paramNameA
-                                                  : (!paramNameB.isEmpty() ? paramNameB : QStringLiteral("unknown"));
-                    valA = pA.size() > 1 ? pA.at(1).toString() : QStringLiteral("(missing)");
-                    valB = pB.size() > 1 ? pB.at(1).toString() : QStringLiteral("(missing)");
+                    if (!paramNameA.isEmpty()) {
+                        param = paramNameA;
+                    } else if (!paramNameB.isEmpty()) {
+                        param = paramNameB;
+                    }
+                }
+
+                if (pA.size() > 1) {
+                    valA = pA.at(1).toString();
+                }
+                if (pB.size() > 1) {
+                    valB = pB.at(1).toString();
                 }
 
                 if (valA == valB) continue;
@@ -303,7 +311,7 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
                     entry.circuitIndex = circuitIdx;
                     sub.diffs.push_back(entry);
                     sub.summary.deviceMismatches += 1;
-                } else if (!missingA && !missingB) {
+                } else if (!(missingA || missingB)) {
                     DiffEntry entryA;
                     entryA.type = DiffType::InstanceMismatch;
                     entryA.subtype = DiffEntry::Subtype::NoMatchingInstance;
