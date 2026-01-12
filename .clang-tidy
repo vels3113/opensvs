@@ -1,0 +1,13 @@
+Checks: >
+  bugprone-*,
+  performance-*,
+  readability-*,
+  modernize-*,
+  cppcoreguidelines-*,
+  -readability-function-cognitive-complexity
+
+WarningsAsErrors: "*"
+
+HeaderFilterRegex: "^.*opensvs/(src|tests)/"
+#AnalyzeTemporaryDtors: true
+FormatStyle: none
