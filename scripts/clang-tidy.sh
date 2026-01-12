@@ -10,5 +10,5 @@ if [[ -z "$FILES" ]]; then
   exit 0;
 fi;
 
-clang-tidy -p build/debug --quiet $FILES > clang-tidy-report.txt
+clang-tidy -p build/debug --quiet $FILES --fix --format-style=file > clang-tidy-report.txt
 echo "Clang-Tidy analysis complete. Report saved to clang-tidy-report.txt."
