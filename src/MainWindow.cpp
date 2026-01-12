@@ -1,53 +1,52 @@
 #include "MainWindow.hpp"
 
 #include <QAbstractItemView>
-#include <QAbstractItemView>
 #include <QAction>
 #include <QComboBox>
+#include <QCoreApplication>
+#include <QDateTime>
+#include <QDialogButtonBox>
+#include <QDir>
+#include <QDockWidget>
+#include <QFile>
 #include <QFileDialog>
+#include <QFormLayout>
 #include <QGridLayout>
-#include <QHeaderView>
 #include <QHBoxLayout>
+#include <QHeaderView>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QPlainTextEdit>
-#include <QPushButton>
-#include <QTreeView>
-#include <QDockWidget>
-#include <QDialogButtonBox>
-#include <QFormLayout>
-#include <QStatusBar>
-#include <QStackedWidget>
-#include <QTableView>
-#include <QVBoxLayout>
-#include <QDateTime>
-#include <QStandardPaths>
-#include <QFile>
-#include <QTextStream>
-#include <QDir>
-#include <QCoreApplication>
 #include <QProcess>
+#include <QPushButton>
 #include <QSet>
+#include <QStackedWidget>
+#include <QStandardPaths>
+#include <QStatusBar>
+#include <QTableView>
+#include <QTextStream>
+#include <QTreeView>
+#include <QVBoxLayout>
 #include <functional>
 
+#include "models/CircuitTreeModel.hpp"
 #include "models/DiffEntryCommon.hpp"
 #include "models/DiffEntryModel.hpp"
 #include "models/DiffFilterProxyModel.hpp"
-#include "models/CircuitTreeModel.hpp"
 #include "parsers/NetgenJsonParser.hpp"
 
 namespace {
-const auto kDockStyle = QStringLiteral("QDockWidget { border: 1px solid #666; } QDockWidget::widget { border: 1px solid #666; }");
+const auto kDockStyle =
+    QStringLiteral("QDockWidget { border: 1px solid #666; } "
+                   "QDockWidget::widget { border: 1px solid #666; }");
 }
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
-    , diffModel_(new DiffEntryModel(this))
-    , proxyModel_(new DiffFilterProxyModel(this))
-    , circuitTreeModel_(new CircuitTreeModel(this))
-{
+    : QMainWindow(parent), diffModel_(new DiffEntryModel(this)),
+      proxyModel_(new DiffFilterProxyModel(this)),
+      circuitTreeModel_(new CircuitTreeModel(this)) {
     setWindowTitle(tr("OpenSVS"));
     setMinimumSize(800, 600);
     loadRecentFiles();
@@ -62,8 +61,7 @@ MainWindow::MainWindow(QWidget *parent)
     logEvent(tr("Application started"));
 }
 
-bool MainWindow::loadFile(const QString &path, bool showError)
-{
+bool MainWindow::loadFile(const QString &path, bool showError) {
     NetgenJsonParser parser;
     auto report = parser.parseFile(path);
     if (!report.ok) {
@@ -90,15 +88,12 @@ bool MainWindow::loadFile(const QString &path, bool showError)
 
     diffModel_->setDiffs(allDiffs);
     proxyModel_->invalidate();
-    setSummary(report.summary.deviceMismatches,
-               report.summary.netMismatches,
-               report.summary.shorts,
-               report.summary.opens,
-               report.summary.totalDevices,
-               report.summary.totalNets,
-               report.summary.layoutCell,
-               report.summary.schematicCell);
-    const QString msg = tr("Loaded %1 diffs from %2").arg(allDiffs.size()).arg(path);
+    setSummary(report.summary.deviceMismatches, report.summary.netMismatches,
+               report.summary.shorts, report.summary.opens,
+               report.summary.totalDevices, report.summary.totalNets,
+               report.summary.layoutCell, report.summary.schematicCell);
+    const QString msg =
+        tr("Loaded %1 diffs from %2").arg(allDiffs.size()).arg(path);
     showStatus(msg);
     logEvent(msg);
 
@@ -119,8 +114,7 @@ bool MainWindow::loadFile(const QString &path, bool showError)
     return true;
 }
 
-void MainWindow::buildUi()
-{
+void MainWindow::buildUi() {
     stack_ = new QStackedWidget(this);
 
     // Welcome page
@@ -128,7 +122,8 @@ void MainWindow::buildUi()
     auto *welcomeLayout = new QVBoxLayout(welcomePage_);
     welcomeLayout->setContentsMargins(16, 16, 16, 16);
     welcomeLayout->setSpacing(12);
-    auto *welcomeLabel = new QLabel(tr("OpenSVS\nLoad a netgen JSON report to begin."), welcomePage_);
+    auto *welcomeLabel = new QLabel(
+        tr("OpenSVS\nLoad a netgen JSON report to begin."), welcomePage_);
     welcomeLabel->setAlignment(Qt::AlignCenter);
     loadButton_ = new QPushButton(tr("Load file..."), welcomePage_);
     welcomeLayout->addStretch(1);
@@ -145,12 +140,13 @@ void MainWindow::buildUi()
 
     auto *filterRow = new QHBoxLayout();
     filterRow->setSpacing(8);
-    
+
     auto *summaryGrid = new QGridLayout();
     summaryGrid->setHorizontalSpacing(12);
     summaryGrid->setVerticalSpacing(6);
 
-    auto makeSummaryRow = [&](int row, const QString &labelText, QLabel **valueLabel, const char *objectName) {
+    auto makeSummaryRow = [&](int row, const QString &labelText,
+                              QLabel **valueLabel, const char *objectName) {
         auto *label = new QLabel(labelText, contentPage_);
         auto *value = new QLabel(QStringLiteral("0"), contentPage_);
         value->setObjectName(QString::fromLatin1(objectName));
@@ -159,22 +155,26 @@ void MainWindow::buildUi()
         *valueLabel = value;
     };
 
-    makeSummaryRow(0, tr("Layout cell:"), &layoutCellLabel_, "summary_layout_cell");
-    makeSummaryRow(1, tr("Schematic cell:"), &schematicCellLabel_, "summary_schematic_cell");
-    makeSummaryRow(2, tr("Device mismatches:"), &deviceMismatchLabel_, "summary_device_mismatches");
-    makeSummaryRow(3, tr("Net mismatches:"), &netMismatchLabel_, "summary_net_mismatches");
+    makeSummaryRow(0, tr("Layout cell:"), &layoutCellLabel_,
+                   "summary_layout_cell");
+    makeSummaryRow(1, tr("Schematic cell:"), &schematicCellLabel_,
+                   "summary_schematic_cell");
+    makeSummaryRow(2, tr("Device mismatches:"), &deviceMismatchLabel_,
+                   "summary_device_mismatches");
+    makeSummaryRow(3, tr("Net mismatches:"), &netMismatchLabel_,
+                   "summary_net_mismatches");
     makeSummaryRow(4, tr("Shorts:"), &shortsLabel_, "summary_shorts");
     makeSummaryRow(5, tr("Opens:"), &opensLabel_, "summary_opens");
-    makeSummaryRow(6, tr("Total devices:"), &totalDevicesLabel_, "summary_total_devices");
-    makeSummaryRow(7, tr("Total nets:"), &totalNetsLabel_, "summary_total_nets");
+    makeSummaryRow(6, tr("Total devices:"), &totalDevicesLabel_,
+                   "summary_total_devices");
+    makeSummaryRow(7, tr("Total nets:"), &totalNetsLabel_,
+                   "summary_total_nets");
     layout->addLayout(summaryGrid);
 
     typeFilter_ = new QComboBox(contentPage_);
     typeFilter_->setObjectName(QStringLiteral("typeFilter"));
-    typeFilter_->addItems({tr("All"),
-                           tr("net_mismatch"),
-                           tr("instance_mismatch"),
-                           tr("device_mismatch"),
+    typeFilter_->addItems({tr("All"), tr("net_mismatch"),
+                           tr("instance_mismatch"), tr("device_mismatch"),
                            tr("property_mismatch")});
     searchField_ = new QLineEdit(contentPage_);
     searchField_->setObjectName(QStringLiteral("searchField"));
@@ -202,7 +202,9 @@ void MainWindow::buildUi()
     circuitTree_->setModel(circuitTreeModel_);
     circuitTree_->setExpandsOnDoubleClick(true);
     circuitTree_->collapseAll();
-    connect(circuitTree_->selectionModel(), &QItemSelectionModel::currentChanged, this, &MainWindow::applyCircuitFilter);
+    connect(circuitTree_->selectionModel(),
+            &QItemSelectionModel::currentChanged, this,
+            &MainWindow::applyCircuitFilter);
 
     auto *tableRow = new QHBoxLayout();
     tableRow->setContentsMargins(0, 0, 0, 0);
@@ -216,21 +218,19 @@ void MainWindow::buildUi()
     stack_->setCurrentWidget(welcomePage_);
     setCentralWidget(stack_);
 
-    connect(typeFilter_, &QComboBox::currentTextChanged, this, [this](const QString &text) {
-        proxyModel_->setTypeFilter(text);
-    });
-    connect(searchField_, &QLineEdit::textChanged, this, [this](const QString &text) {
-        proxyModel_->setSearchTerm(text);
-    });
+    connect(typeFilter_, &QComboBox::currentTextChanged, this,
+            [this](const QString &text) { proxyModel_->setTypeFilter(text); });
+    connect(searchField_, &QLineEdit::textChanged, this,
+            [this](const QString &text) { proxyModel_->setSearchTerm(text); });
 
     connect(loadButton_, &QPushButton::clicked, this, [this]() {
-        const QString startDir = mostRecentFile().isEmpty()
-            ? QStringLiteral("./resources/fixtures")
-            : QFileInfo(mostRecentFile()).absolutePath();
-        const QString path = QFileDialog::getOpenFileName(this,
-                                                         tr("Open netgen JSON report"),
-                                                         startDir,
-                                                         tr("JSON files (*.json);;All files (*)"));
+        const QString startDir =
+            mostRecentFile().isEmpty()
+                ? QStringLiteral("./resources/fixtures")
+                : QFileInfo(mostRecentFile()).absolutePath();
+        const QString path = QFileDialog::getOpenFileName(
+            this, tr("Open netgen JSON report"), startDir,
+            tr("JSON files (*.json);;All files (*)"));
         if (!path.isEmpty()) {
             if (loadFile(path, true)) {
                 stack_->setCurrentWidget(contentPage_);
@@ -241,19 +241,18 @@ void MainWindow::buildUi()
     updateRecentButtons();
 }
 
-void MainWindow::buildMenus()
-{
+void MainWindow::buildMenus() {
     auto *fileMenu = menuBar()->addMenu(tr("&File"));
     auto *openAction = new QAction(tr("&Open JSON..."), this);
     openAction->setShortcut(QKeySequence::Open);
     connect(openAction, &QAction::triggered, this, [this]() {
-        const QString startDir = mostRecentFile().isEmpty()
-            ? QStringLiteral("./resources/fixtures")
-            : QFileInfo(mostRecentFile()).absolutePath();
-        const QString path = QFileDialog::getOpenFileName(this,
-                                                         tr("Open netgen JSON report"),
-                                                         startDir,
-                                                         tr("JSON files (*.json);;All files (*)"));
+        const QString startDir =
+            mostRecentFile().isEmpty()
+                ? QStringLiteral("./resources/fixtures")
+                : QFileInfo(mostRecentFile()).absolutePath();
+        const QString path = QFileDialog::getOpenFileName(
+            this, tr("Open netgen JSON report"), startDir,
+            tr("JSON files (*.json);;All files (*)"));
         if (!path.isEmpty()) {
             loadFile(path, true);
         }
@@ -265,7 +264,8 @@ void MainWindow::buildMenus()
 
     auto *runMenu = menuBar()->addMenu(tr("&Run"));
     auto *lvsAction = new QAction(tr("LVS..."), this);
-    connect(lvsAction, &QAction::triggered, this, [this]() { openLvsDialog(); });
+    connect(lvsAction, &QAction::triggered, this,
+            [this]() { openLvsDialog(); });
     runMenu->addAction(lvsAction);
 
     ensureLogDock();
@@ -275,18 +275,24 @@ void MainWindow::buildMenus()
     auto *helpMenu = menuBar()->addMenu(tr("&Help"));
     auto *aboutAction = new QAction(tr("About OpenSVS"), this);
     connect(aboutAction, &QAction::triggered, this, [this]() {
-        const QString text = tr("<b>OpenSVS</b><br>Version: %1<br>Qt: %2<br><br>Qt6 GUI for viewing netgen JSON reports.")
-                                .arg(QCoreApplication::applicationVersion())
-                                .arg(QLatin1String(qVersion()));
+        const QString text =
+            tr("<b>OpenSVS</b><br>Version: %1<br>Qt: %2<br><br>Qt6 GUI for "
+               "viewing netgen JSON reports.")
+                .arg(QCoreApplication::applicationVersion())
+                .arg(QLatin1String(qVersion()));
         QMessageBox::about(this, tr("About OpenSVS"), text);
     });
     helpMenu->addAction(aboutAction);
 }
 
-void MainWindow::setSummary(int device, int net, int shorts, int opens, int totalDevices, int totalNets, const QString &layoutCell, const QString &schematicCell)
-{
-    if (layoutCellLabel_) layoutCellLabel_->setText(layoutCell);
-    if (schematicCellLabel_) schematicCellLabel_->setText(schematicCell);
+void MainWindow::setSummary(int device, int net, int shorts, int opens,
+                            int totalDevices, int totalNets,
+                            const QString &layoutCell,
+                            const QString &schematicCell) {
+    if (layoutCellLabel_)
+        layoutCellLabel_->setText(layoutCell);
+    if (schematicCellLabel_)
+        schematicCellLabel_->setText(schematicCell);
     deviceMismatchLabel_->setText(QString::number(device));
     netMismatchLabel_->setText(QString::number(net));
     shortsLabel_->setText(QString::number(shorts));
@@ -295,16 +301,15 @@ void MainWindow::setSummary(int device, int net, int shorts, int opens, int tota
     totalNetsLabel_->setText(QString::number(totalNets));
 }
 
-void MainWindow::showStatus(const QString &msg)
-{
+void MainWindow::showStatus(const QString &msg) {
     if (QStatusBar *sb = statusBar()) {
         sb->showMessage(msg, 5000);
     }
 }
 
-void MainWindow::logEvent(const QString &msg)
-{
-    const QString stamped = QStringLiteral("[%1] %2")
+void MainWindow::logEvent(const QString &msg) {
+    const QString stamped =
+        QStringLiteral("[%1] %2")
             .arg(QDateTime::currentDateTime().toString(Qt::ISODateWithMs))
             .arg(msg);
 
@@ -317,10 +322,10 @@ void MainWindow::logEvent(const QString &msg)
     refreshLogView();
 }
 
-void MainWindow::appendLogToDisk(const QString &line)
-{
+void MainWindow::appendLogToDisk(const QString &line) {
     const QString path = logFilePath();
-    if (path.isEmpty()) return;
+    if (path.isEmpty())
+        return;
 
     QFile f(path);
     if (f.size() > 1024 * 1024) { // rotate at ~1MB
@@ -333,9 +338,9 @@ void MainWindow::appendLogToDisk(const QString &line)
     }
 }
 
-void MainWindow::rebuildRecentFilesMenu()
-{
-    if (!recentMenu_) return;
+void MainWindow::rebuildRecentFilesMenu() {
+    if (!recentMenu_)
+        return;
     recentMenu_->clear();
     if (recentFiles_.isEmpty()) {
         QAction *empty = recentMenu_->addAction(tr("No recent files"));
@@ -344,14 +349,12 @@ void MainWindow::rebuildRecentFilesMenu()
     }
     for (const QString &path : recentFiles_) {
         QAction *act = recentMenu_->addAction(path);
-        connect(act, &QAction::triggered, this, [this, path]() {
-            loadFile(path, true);
-        });
+        connect(act, &QAction::triggered, this,
+                [this, path]() { loadFile(path, true); });
     }
 }
 
-void MainWindow::openLogDialog()
-{
+void MainWindow::openLogDialog() {
     ensureLogDock();
     refreshLogView();
     logDock_->show();
@@ -359,19 +362,19 @@ void MainWindow::openLogDialog()
     logDock_->activateWindow();
 }
 
-QString MainWindow::logFilePath() const
-{
-    const QString dir = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
+QString MainWindow::logFilePath() const {
+    const QString dir =
+        QStandardPaths::writableLocation(QStandardPaths::TempLocation);
     if (dir.isEmpty()) {
         return {};
     }
     return dir + QStringLiteral("/opensvs.log");
 }
 
-void MainWindow::loadRecentFiles()
-{
+void MainWindow::loadRecentFiles() {
     const QString path = recentFilesPath();
-    if (path.isEmpty()) return;
+    if (path.isEmpty())
+        return;
     QFile f(path);
     if (!f.open(QIODevice::ReadOnly | QIODevice::Text)) {
         return;
@@ -391,10 +394,10 @@ void MainWindow::loadRecentFiles()
     recentFiles_ = lines;
 }
 
-void MainWindow::saveRecentFiles() const
-{
+void MainWindow::saveRecentFiles() const {
     const QString path = recentFilesPath();
-    if (path.isEmpty()) return;
+    if (path.isEmpty())
+        return;
     QDir().mkpath(QFileInfo(path).absolutePath());
     QFile f(path);
     if (f.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
@@ -405,30 +408,32 @@ void MainWindow::saveRecentFiles() const
     }
 }
 
-QString MainWindow::recentFilesPath() const
-{
-    const QString dir = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
-    if (dir.isEmpty()) return {};
+QString MainWindow::recentFilesPath() const {
+    const QString dir =
+        QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
+    if (dir.isEmpty())
+        return {};
     return dir + QStringLiteral("/opensvs_recent.txt");
 }
 
-void MainWindow::updateRecentButtons()
-{
+void MainWindow::updateRecentButtons() {
     // No buttons to toggle (load recent removed); kept for future hook.
 }
 
-QString MainWindow::mostRecentFile() const
-{
-    if (recentFiles_.isEmpty()) return {};
+QString MainWindow::mostRecentFile() const {
+    if (recentFiles_.isEmpty())
+        return {};
     return recentFiles_.front();
 }
 
-void MainWindow::ensureLogDock()
-{
-    if (logDock_) return;
+void MainWindow::ensureLogDock() {
+    if (logDock_)
+        return;
     logDock_ = new QDockWidget(tr("Session Log"), this);
     logDock_->setObjectName(QStringLiteral("logDock"));
-    logDock_->setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
+    logDock_->setFeatures(QDockWidget::DockWidgetClosable |
+                          QDockWidget::DockWidgetMovable |
+                          QDockWidget::DockWidgetFloatable);
     logDock_->setAllowedAreas(Qt::AllDockWidgetAreas);
     logDock_->setStyleSheet(kDockStyle);
     logView_ = new QPlainTextEdit(logDock_);
@@ -438,28 +443,31 @@ void MainWindow::ensureLogDock()
     logDock_->hide();
 }
 
-void MainWindow::refreshLogView()
-{
+void MainWindow::refreshLogView() {
     if (logView_) {
         logView_->setPlainText(logLines_.join('\n'));
         logView_->moveCursor(QTextCursor::End);
     }
 }
 
-void MainWindow::applyCircuitFilter(const QModelIndex &index)
-{
-    if (!circuitTreeModel_ || !proxyModel_) return;
+void MainWindow::applyCircuitFilter(const QModelIndex &index) {
+    if (!circuitTreeModel_ || !proxyModel_)
+        return;
 
     QSet<int> allowed;
-    auto gather = [&](auto &&self, NetgenJsonParser::Report::Circuit *circuit) -> void {
-        if (!circuit) return;
-        if (circuit->index >= 0) allowed.insert(circuit->index);
+    auto gather = [&](auto &&self,
+                      NetgenJsonParser::Report::Circuit *circuit) -> void {
+        if (!circuit)
+            return;
+        if (circuit->index >= 0)
+            allowed.insert(circuit->index);
         for (auto *child : circuit->subcircuits) {
             self(self, child);
         }
     };
 
-    NetgenJsonParser::Report::Circuit *c = circuitTreeModel_->circuitForIndex(index);
+    NetgenJsonParser::Report::Circuit *c =
+        circuitTreeModel_->circuitForIndex(index);
     if (c) {
         gather(gather, c);
     } else {
@@ -468,8 +476,7 @@ void MainWindow::applyCircuitFilter(const QModelIndex &index)
     proxyModel_->setAllowedCircuits(allowed);
 }
 
-void MainWindow::openLvsDialog()
-{
+void MainWindow::openLvsDialog() {
     ensureLvsDock();
     if (lvsDock_) {
         lvsDock_->show();
@@ -478,13 +485,15 @@ void MainWindow::openLvsDialog()
     }
 }
 
-void MainWindow::ensureLvsDock()
-{
-    if (lvsDock_) return;
+void MainWindow::ensureLvsDock() {
+    if (lvsDock_)
+        return;
 
     lvsDock_ = new QDockWidget(tr("LVS"), this);
     lvsDock_->setObjectName(QStringLiteral("lvsDock"));
-    lvsDock_->setFeatures(QDockWidget::DockWidgetClosable | QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
+    lvsDock_->setFeatures(QDockWidget::DockWidgetClosable |
+                          QDockWidget::DockWidgetMovable |
+                          QDockWidget::DockWidgetFloatable);
     lvsDock_->setAllowedAreas(Qt::AllDockWidgetAreas);
     lvsDock_->setStyleSheet(kDockStyle);
 
@@ -492,7 +501,8 @@ void MainWindow::ensureLvsDock()
     auto *vbox = new QVBoxLayout(container);
     auto *form = new QFormLayout();
 
-    auto makePicker = [&](const QString &caption, QLineEdit **target) -> QWidget * {
+    auto makePicker = [&](const QString &caption,
+                          QLineEdit **target) -> QWidget * {
         auto *rowWidget = new QWidget(container);
         auto *row = new QHBoxLayout(rowWidget);
         row->setContentsMargins(0, 0, 0, 0);
@@ -501,8 +511,10 @@ void MainWindow::ensureLvsDock()
         row->addWidget(edit, 1);
         row->addWidget(browse);
         connect(browse, &QPushButton::clicked, this, [this, edit, caption]() {
-            const QString startDir = lvsLastDir_.isEmpty() ? QDir::currentPath() : lvsLastDir_;
-            const QString path = QFileDialog::getOpenFileName(this, caption, startDir);
+            const QString startDir =
+                lvsLastDir_.isEmpty() ? QDir::currentPath() : lvsLastDir_;
+            const QString path =
+                QFileDialog::getOpenFileName(this, caption, startDir);
             if (!path.isEmpty()) {
                 edit->setText(path);
                 lvsLastDir_ = QFileInfo(path).absolutePath();
@@ -515,7 +527,8 @@ void MainWindow::ensureLvsDock()
     };
 
     auto *layoutRow = makePicker(tr("Select layout file"), &lvsLayoutEdit_);
-    auto *schematicRow = makePicker(tr("Select schematic file"), &lvsSchematicEdit_);
+    auto *schematicRow =
+        makePicker(tr("Select schematic file"), &lvsSchematicEdit_);
     auto *rulesRow = makePicker(tr("Select rules file"), &lvsRulesEdit_);
 
     form->addRow(tr("Layout file:"), layoutRow);
@@ -525,24 +538,31 @@ void MainWindow::ensureLvsDock()
     vbox->addLayout(form);
 
     auto *buttons = new QDialogButtonBox(QDialogButtonBox::Cancel, container);
-    auto *runButton = buttons->addButton(tr("Run"), QDialogButtonBox::AcceptRole);
+    auto *runButton =
+        buttons->addButton(tr("Run"), QDialogButtonBox::AcceptRole);
     connect(buttons, &QDialogButtonBox::rejected, lvsDock_, &QDockWidget::hide);
     connect(runButton, &QPushButton::clicked, this, [this]() {
-        if (!lvsLayoutEdit_ || !lvsSchematicEdit_ || !lvsRulesEdit_) return;
+        if (!lvsLayoutEdit_ || !lvsSchematicEdit_ || !lvsRulesEdit_)
+            return;
 
         const QString layout = lvsLayoutEdit_->text().trimmed();
         const QString schematic = lvsSchematicEdit_->text().trimmed();
         const QString rules = lvsRulesEdit_->text().trimmed();
 
         if (layout.isEmpty() || schematic.isEmpty() || rules.isEmpty()) {
-            QMessageBox::warning(this, tr("Missing input"), tr("Please provide layout, schematic, and rules files."));
+            QMessageBox::warning(
+                this, tr("Missing input"),
+                tr("Please provide layout, schematic, and rules files."));
             return;
         }
 
-        const QString timestamp = QDateTime::currentDateTime().toString(QStringLiteral("yyyyMMdd_hhmmss"));
+        const QString timestamp = QDateTime::currentDateTime().toString(
+            QStringLiteral("yyyyMMdd_hhmmss"));
         const QString baseName = QStringLiteral("comp_%1").arg(timestamp);
-        const QString outPath = QDir::current().filePath(baseName + QStringLiteral(".out"));
-        const QString jsonPath = QDir::current().filePath(baseName + QStringLiteral(".json"));
+        const QString outPath =
+            QDir::current().filePath(baseName + QStringLiteral(".out"));
+        const QString jsonPath =
+            QDir::current().filePath(baseName + QStringLiteral(".json"));
 
         QProcess proc(this);
         QStringList args;
@@ -554,8 +574,9 @@ void MainWindow::ensureLvsDock()
         };
 
         args << QStringLiteral("-batch") << QStringLiteral("lvs")
-             << makeRelative(layout) << makeRelative(schematic) << makeRelative(rules)
-             << makeRelative(outPath) << QStringLiteral("-json");
+             << makeRelative(layout) << makeRelative(schematic)
+             << makeRelative(rules) << makeRelative(outPath)
+             << QStringLiteral("-json");
         const QString msg = tr("Running \"netgen %1\"...").arg(args.join(" "));
         showStatus(tr("Running netgen..."));
         logEvent(msg);
@@ -567,21 +588,24 @@ void MainWindow::ensureLvsDock()
         qInfo() << "Starting netgen in" << proc.workingDirectory() << args;
         proc.start(QStringLiteral("netgen"), args);
         if (!proc.waitForStarted()) {
-            QMessageBox::critical(this, tr("LVS failed to start"), tr("Could not start netgen process."));
+            QMessageBox::critical(this, tr("LVS failed to start"),
+                                  tr("Could not start netgen process."));
             return;
         }
         proc.waitForFinished(-1);
         if (proc.exitStatus() != QProcess::NormalExit || proc.exitCode() != 0) {
-            QMessageBox::critical(this, tr("LVS failed"),
-                                  tr("netgen exited with code %1:\n%2")
-                                      .arg(proc.exitCode())
-                                      .arg(QString::fromLocal8Bit(proc.readAllStandardError())));
+            QMessageBox::critical(
+                this, tr("LVS failed"),
+                tr("netgen exited with code %1:\n%2")
+                    .arg(proc.exitCode())
+                    .arg(QString::fromLocal8Bit(proc.readAllStandardError())));
             return;
         }
 
         if (!QFile::exists(jsonPath)) {
-            QMessageBox::critical(this, tr("Output missing"),
-                                  tr("Expected JSON output not found at %1").arg(jsonPath));
+            QMessageBox::critical(
+                this, tr("Output missing"),
+                tr("Expected JSON output not found at %1").arg(jsonPath));
             return;
         }
 

@@ -1,18 +1,18 @@
 #include "parsers/NetgenJsonParser.hpp"
 
 #include <QFile>
+#include <QHash>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QStringList>
-#include <QHash>
 #include <QSet>
+#include <QStringList>
 #include <algorithm>
 #include <qjsonarray.h>
 #include <qjsonvalue.h>
 
-NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
-{
+NetgenJsonParser::Report
+NetgenJsonParser::parseFile(const QString &path) const {
     Report report;
 
     QFile file(path);
@@ -25,7 +25,8 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
     QJsonParseError parseError;
     const QJsonDocument doc = QJsonDocument::fromJson(data, &parseError);
     if (parseError.error != QJsonParseError::NoError) {
-        report.error = QStringLiteral("JSON parse error: %1").arg(parseError.errorString());
+        report.error = QStringLiteral("JSON parse error: %1")
+                           .arg(parseError.errorString());
         return report;
     }
 
@@ -36,28 +37,34 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
 
     const QJsonArray arr = doc.array();
     if (arr.isEmpty()) {
-        report.error = QStringLiteral("Root JSON array is empty or has no object");
+        report.error =
+            QStringLiteral("Root JSON array is empty or has no object");
         return report;
     }
 
     report.circuits.reserve(arr.size());
     int circuitIdx = 0;
     for (const QJsonValue &rootVal : arr) {
-        if (!rootVal.isObject()) continue;
+        if (!rootVal.isObject())
+            continue;
         const QJsonObject rootObj = rootVal.toObject();
         const QJsonValue namesVal = rootObj.value(QStringLiteral("name"));
-        if (!namesVal.isArray()) continue;
+        if (!namesVal.isArray())
+            continue;
         const QJsonArray namesArr = namesVal.toArray();
-        if (namesArr.isEmpty()) continue;
+        if (namesArr.isEmpty())
+            continue;
         Report::Circuit sub;
         sub.index = circuitIdx;
 
-        const QJsonArray netsArr = rootObj.value(QStringLiteral("nets")).toArray();
+        const QJsonArray netsArr =
+            rootObj.value(QStringLiteral("nets")).toArray();
         if (!netsArr.isEmpty()) {
             sub.summary.totalNets = netsArr.first().toInt(0);
         }
 
-        const QJsonArray devicesArr = rootObj.value(QStringLiteral("devices")).toArray();
+        const QJsonArray devicesArr =
+            rootObj.value(QStringLiteral("devices")).toArray();
         if (!devicesArr.isEmpty() && devicesArr.first().isArray()) {
             int total = 0;
             for (const QJsonValue &devVal : devicesArr.first().toArray()) {
@@ -91,27 +98,40 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
             }
         }
 
-        sub.layoutCell = namesArr.size() > 0 ? namesArr.at(0).toString() : QString();
-        sub.schematicCell = namesArr.size() > 1 ? namesArr.at(1).toString() : QString();
-        const QJsonArray propertiesArr = rootObj.value(QStringLiteral("properties")).toArray();
+        sub.layoutCell =
+            namesArr.size() > 0 ? namesArr.at(0).toString() : QString();
+        sub.schematicCell =
+            namesArr.size() > 1 ? namesArr.at(1).toString() : QString();
+        const QJsonArray propertiesArr =
+            rootObj.value(QStringLiteral("properties")).toArray();
         for (const QJsonValue &val : propertiesArr) {
             const QJsonArray pairArr = val.toArray();
-            if (pairArr.size() < 2) continue;
+            if (pairArr.size() < 2)
+                continue;
             const QJsonArray deviceA = pairArr.at(0).toArray();
             const QJsonArray deviceB = pairArr.at(1).toArray();
-            if (deviceA.size() < 2 || deviceB.size() < 2) continue;
+            if (deviceA.size() < 2 || deviceB.size() < 2)
+                continue;
             const QString nameA = deviceA.at(0).toString();
             const QString nameB = deviceB.at(0).toString();
             const QJsonArray paramsA = deviceA.at(1).toArray();
             const QJsonArray paramsB = deviceB.at(1).toArray();
             const int maxParams = std::max(paramsA.size(), paramsB.size());
             for (int i = 0; i < maxParams; ++i) {
-                const QJsonArray pA = i < paramsA.size() ? paramsA.at(i).toArray() : QJsonArray();
-                const QJsonArray pB = i < paramsB.size() ? paramsB.at(i).toArray() : QJsonArray();
-                const QString paramNameA = !pA.isEmpty() ? pA.at(0).toString() : QString();
-                const QString paramNameB = !pB.isEmpty() ? pB.at(0).toString() : QString();
-                const bool missingParamA = paramNameA.contains(QStringLiteral("(no matching parameter)"), Qt::CaseSensitive);
-                const bool missingParamB = paramNameB.contains(QStringLiteral("(no matching parameter)"), Qt::CaseSensitive);
+                const QJsonArray pA =
+                    i < paramsA.size() ? paramsA.at(i).toArray() : QJsonArray();
+                const QJsonArray pB =
+                    i < paramsB.size() ? paramsB.at(i).toArray() : QJsonArray();
+                const QString paramNameA =
+                    !pA.isEmpty() ? pA.at(0).toString() : QString();
+                const QString paramNameB =
+                    !pB.isEmpty() ? pB.at(0).toString() : QString();
+                const bool missingParamA = paramNameA.contains(
+                    QStringLiteral("(no matching parameter)"),
+                    Qt::CaseSensitive);
+                const bool missingParamB = paramNameB.contains(
+                    QStringLiteral("(no matching parameter)"),
+                    Qt::CaseSensitive);
 
                 QString param = QStringLiteral("unknown");
                 QString valA = QStringLiteral("(missing)");
@@ -140,20 +160,23 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
                     valB = pB.at(1).toString();
                 }
 
-                if (valA == valB) continue;
+                if (valA == valB)
+                    continue;
                 DiffEntry entry;
                 entry.type = DiffType::PropertyMismatch;
                 entry.subtype = DiffEntry::Subtype::MissingParameter;
                 entry.name = !nameA.isEmpty() ? nameA : nameB;
                 entry.layoutCell = sub.layoutCell;
                 entry.schematicCell = sub.schematicCell;
-                entry.details = QStringLiteral("%1: %2 vs %3").arg(param, valA, valB);
+                entry.details =
+                    QStringLiteral("%1: %2 vs %3").arg(param, valA, valB);
                 entry.circuitIndex = circuitIdx;
                 sub.diffs.push_back(entry);
             }
         }
 
-        const QJsonArray badnetsArr = rootObj.value(QStringLiteral("badnets")).toArray();
+        const QJsonArray badnetsArr =
+            rootObj.value(QStringLiteral("badnets")).toArray();
 
         struct NetInfo {
             QString rawName;
@@ -165,7 +188,8 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
 
         auto normalizeName = [](const QString &n) {
             const QString lower = n.trimmed().toLower();
-            if (lower == QStringLiteral("gnd") || lower == QStringLiteral("0")) {
+            if (lower == QStringLiteral("gnd") ||
+                lower == QStringLiteral("0")) {
                 return QStringLiteral("0");
             }
             return lower;
@@ -178,16 +202,21 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
                     QString dev = conn.at(0).toString();
                     const QString port = conn.at(1).toString();
                     const int count = conn.size() > 2 ? conn.at(2).toInt() : 0;
-                    parts << QStringLiteral("%1:%2 (%3)").arg(dev, port).arg(count);
+                    parts << QStringLiteral("%1:%2 (%3)")
+                                 .arg(dev, port)
+                                 .arg(count);
                 }
             }
             return parts;
         };
-        auto captureNet = [&](const QJsonArray &netArr, QHash<QString, NetInfo> &dest) {
-            if (netArr.size() < 2) return;
+        auto captureNet = [&](const QJsonArray &netArr,
+                              QHash<QString, NetInfo> &dest) {
+            if (netArr.size() < 2)
+                return;
             NetInfo info;
             info.rawName = netArr.at(0).toString();
-            if (info.rawName.contains(QStringLiteral("(no matching net)"), Qt::CaseInsensitive)) {
+            if (info.rawName.contains(QStringLiteral("(no matching net)"),
+                                      Qt::CaseInsensitive)) {
                 return;
             }
             info.connections = connectionList(netArr.at(1).toArray());
@@ -203,19 +232,23 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
         };
 
         for (const QJsonValue &val : badnetsArr) {
-            if (!val.isArray()) continue;
+            if (!val.isArray())
+                continue;
             QJsonArray pairArr = val.toArray();
             if (pairArr.size() == 1 && pairArr.at(0).isArray()) {
                 pairArr = pairArr.at(0).toArray();
             }
-            if (pairArr.size() == 2 && pairArr.at(0).isArray() && pairArr.at(1).isArray()) {
+            if (pairArr.size() == 2 && pairArr.at(0).isArray() &&
+                pairArr.at(1).isArray()) {
                 const QJsonArray netsListA = pairArr.at(0).toArray();
                 const QJsonArray netsListB = pairArr.at(1).toArray();
                 for (const QJsonValue &na : netsListA) {
-                    if (na.isArray()) captureNet(na.toArray(), netsA);
+                    if (na.isArray())
+                        captureNet(na.toArray(), netsA);
                 }
                 for (const QJsonValue &nb : netsListB) {
-                    if (nb.isArray()) captureNet(nb.toArray(), netsB);
+                    if (nb.isArray())
+                        captureNet(nb.toArray(), netsB);
                 }
             }
         }
@@ -226,8 +259,10 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
             if (hasA && hasB) {
                 const auto &a = netsA.value(name);
                 const auto &b = netsB.value(name);
-                const QSet<QString> setA(a.connections.begin(), a.connections.end());
-                const QSet<QString> setB(b.connections.begin(), b.connections.end());
+                const QSet<QString> setA(a.connections.begin(),
+                                         a.connections.end());
+                const QSet<QString> setB(b.connections.begin(),
+                                         b.connections.end());
                 QStringList onlyA;
                 for (const auto &conn : a.connections) {
                     if (!setB.contains(conn)) {
@@ -244,19 +279,23 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
                     DiffEntry entry;
                     entry.type = DiffType::NetMismatch;
                     const bool bothSides = !onlyA.isEmpty() && !onlyB.isEmpty();
-                    entry.subtype = bothSides
-                            ? DiffEntry::Subtype::UnmatchedConnections
-                            : DiffEntry::Subtype::MissingConnection;
+                    entry.subtype =
+                        bothSides ? DiffEntry::Subtype::UnmatchedConnections
+                                  : DiffEntry::Subtype::MissingConnection;
                     entry.name = !a.rawName.isEmpty() ? a.rawName : b.rawName;
                     entry.layoutCell = sub.layoutCell;
                     entry.schematicCell = sub.schematicCell;
                     QStringList parts;
                     if (!onlyA.isEmpty()) {
-                        parts << QStringLiteral("The following pins are connected only in Layout circuit: %1")
+                        parts << QStringLiteral(
+                                     "The following pins are connected only in "
+                                     "Layout circuit: %1")
                                      .arg(onlyA.join(QStringLiteral(", ")));
                     }
                     if (!onlyB.isEmpty()) {
-                        parts << QStringLiteral("The following pins are connected only in Schematics circuit: %1")
+                        parts << QStringLiteral(
+                                     "The following pins are connected only in "
+                                     "Schematics circuit: %1")
                                      .arg(onlyB.join(QStringLiteral(", ")));
                     }
                     entry.details = parts.join(QStringLiteral(" | "));
@@ -268,18 +307,25 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
                 DiffEntry entry;
                 entry.type = DiffType::NetMismatch;
                 entry.subtype = DiffEntry::Subtype::NoMatchingNet;
-                const QString displayName = hasA ? netsA.value(name).rawName : netsB.value(name).rawName;
+                const QString displayName = hasA ? netsA.value(name).rawName
+                                                 : netsB.value(name).rawName;
                 entry.name = displayName.isEmpty() ? name : displayName;
                 entry.layoutCell = sub.layoutCell;
                 entry.schematicCell = sub.schematicCell;
                 if (hasA) {
                     const auto &a = netsA.value(name);
-                    entry.details = QStringLiteral("No matching net in Schematics circuit for %1 (connected to %2)")
-                            .arg(a.rawName, a.connections.join(QStringLiteral(", ")));
+                    entry.details =
+                        QStringLiteral("No matching net in Schematics circuit "
+                                       "for %1 (connected to %2)")
+                            .arg(a.rawName,
+                                 a.connections.join(QStringLiteral(", ")));
                 } else {
                     const auto &b = netsB.value(name);
-                    entry.details = QStringLiteral("No matching net in Layout circuit for %1 (connected to %2)")
-                            .arg(b.rawName, b.connections.join(QStringLiteral(", ")));
+                    entry.details =
+                        QStringLiteral("No matching net in Layout circuit for "
+                                       "%1 (connected to %2)")
+                            .arg(b.rawName,
+                                 b.connections.join(QStringLiteral(", ")));
                 }
                 entry.circuitIndex = circuitIdx;
                 sub.diffs.push_back(entry);
@@ -287,16 +333,30 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
             }
         }
 
-        const QJsonArray badElementsArr = rootObj.value(QStringLiteral("badelements")).toArray();
-        auto processElementPair = [&](const QJsonArray &listA, const QJsonArray &listB) {
+        const QJsonArray badElementsArr =
+            rootObj.value(QStringLiteral("badelements")).toArray();
+        auto processElementPair = [&](const QJsonArray &listA,
+                                      const QJsonArray &listB) {
             const int maxCount = std::max(listA.size(), listB.size());
             for (int i = 0; i < maxCount; ++i) {
-                const QJsonArray elemA = i < listA.size() ? listA.at(i).toArray() : QJsonArray();
-                const QJsonArray elemB = i < listB.size() ? listB.at(i).toArray() : QJsonArray();
-                const QString instanceNameA = !elemA.isEmpty() ? elemA.at(0).toString() : QString();
-                const QString instanceNameB = !elemB.isEmpty() ? elemB.at(0).toString() : QString();
-                const bool missingA = instanceNameA.contains(QStringLiteral("(no matching instance)"), Qt::CaseInsensitive) || elemA.isEmpty();
-                const bool missingB = instanceNameB.contains(QStringLiteral("(no matching instance)"), Qt::CaseInsensitive) || elemB.isEmpty();
+                const QJsonArray elemA =
+                    i < listA.size() ? listA.at(i).toArray() : QJsonArray();
+                const QJsonArray elemB =
+                    i < listB.size() ? listB.at(i).toArray() : QJsonArray();
+                const QString instanceNameA =
+                    !elemA.isEmpty() ? elemA.at(0).toString() : QString();
+                const QString instanceNameB =
+                    !elemB.isEmpty() ? elemB.at(0).toString() : QString();
+                const bool missingA =
+                    instanceNameA.contains(
+                        QStringLiteral("(no matching instance)"),
+                        Qt::CaseInsensitive) ||
+                    elemA.isEmpty();
+                const bool missingB =
+                    instanceNameB.contains(
+                        QStringLiteral("(no matching instance)"),
+                        Qt::CaseInsensitive) ||
+                    elemB.isEmpty();
 
                 if (missingA != missingB) {
                     DiffEntry entry;
@@ -305,9 +365,11 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
                     entry.name = missingA ? instanceNameB : instanceNameA;
                     entry.layoutCell = sub.layoutCell;
                     entry.schematicCell = sub.schematicCell;
-                    entry.details = missingA
-                            ? QStringLiteral("The instance is present only in Schematics circuit")
-                            : QStringLiteral("The instance is present only in Layout circuit");
+                    entry.details =
+                        missingA ? QStringLiteral("The instance is present "
+                                                  "only in Schematics circuit")
+                                 : QStringLiteral("The instance is present "
+                                                  "only in Layout circuit");
                     entry.circuitIndex = circuitIdx;
                     sub.diffs.push_back(entry);
                     sub.summary.deviceMismatches += 1;
@@ -315,10 +377,14 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
                     DiffEntry entryA;
                     entryA.type = DiffType::InstanceMismatch;
                     entryA.subtype = DiffEntry::Subtype::NoMatchingInstance;
-                    entryA.name = instanceNameA.split(QStringLiteral(":")).first();
+                    entryA.name =
+                        instanceNameA.split(QStringLiteral(":")).first();
                     entryA.layoutCell = sub.layoutCell;
                     entryA.schematicCell = sub.schematicCell;
-                    entryA.details = QStringLiteral("Instance %1 present in Layout circuit has no matching instance").arg(instanceNameA);
+                    entryA.details =
+                        QStringLiteral("Instance %1 present in Layout circuit "
+                                       "has no matching instance")
+                            .arg(instanceNameA);
                     entryA.circuitIndex = circuitIdx;
                     sub.diffs.push_back(entryA);
                     sub.summary.deviceMismatches += 1;
@@ -326,10 +392,15 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
                     DiffEntry entryB;
                     entryB.type = DiffType::InstanceMismatch;
                     entryB.subtype = DiffEntry::Subtype::NoMatchingInstance;
-                    entryB.name = instanceNameB.split(QStringLiteral(":")).first();;
+                    entryB.name =
+                        instanceNameB.split(QStringLiteral(":")).first();
+                    ;
                     entryB.layoutCell = sub.layoutCell;
                     entryB.schematicCell = sub.schematicCell;
-                    entryB.details = QStringLiteral("Instance %1 present in Schematics circuit has no matching instance").arg(instanceNameB);
+                    entryB.details =
+                        QStringLiteral("Instance %1 present in Schematics "
+                                       "circuit has no matching instance")
+                            .arg(instanceNameB);
                     entryB.circuitIndex = circuitIdx;
                     sub.diffs.push_back(entryB);
                     sub.summary.deviceMismatches += 1;
@@ -338,22 +409,30 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
         };
 
         if (!badElementsArr.isEmpty()) {
-            if (badElementsArr.size() == 2 && badElementsArr.at(0).isArray() && badElementsArr.at(1).isArray()) {
-                processElementPair(badElementsArr.at(0).toArray(), badElementsArr.at(1).toArray());
-            } else if (badElementsArr.size() == 1 && badElementsArr.first().isArray()) {
+            if (badElementsArr.size() == 2 && badElementsArr.at(0).isArray() &&
+                badElementsArr.at(1).isArray()) {
+                processElementPair(badElementsArr.at(0).toArray(),
+                                   badElementsArr.at(1).toArray());
+            } else if (badElementsArr.size() == 1 &&
+                       badElementsArr.first().isArray()) {
                 const QJsonArray first = badElementsArr.first().toArray();
-                if (first.size() == 2 && first.at(0).isArray() && first.at(1).isArray()) {
-                    processElementPair(first.at(0).toArray(), first.at(1).toArray());
+                if (first.size() == 2 && first.at(0).isArray() &&
+                    first.at(1).isArray()) {
+                    processElementPair(first.at(0).toArray(),
+                                       first.at(1).toArray());
                 }
             } else {
                 for (const QJsonValue &val : badElementsArr) {
-                    if (!val.isArray()) continue;
+                    if (!val.isArray())
+                        continue;
                     QJsonArray pair = val.toArray();
                     if (pair.size() == 1 && pair.at(0).isArray()) {
                         pair = pair.at(0).toArray();
                     }
-                    if (pair.size() == 2 && pair.at(0).isArray() && pair.at(1).isArray()) {
-                        processElementPair(pair.at(0).toArray(), pair.at(1).toArray());
+                    if (pair.size() == 2 && pair.at(0).isArray() &&
+                        pair.at(1).isArray()) {
+                        processElementPair(pair.at(0).toArray(),
+                                           pair.at(1).toArray());
                     }
                 }
             }
@@ -364,20 +443,24 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
     }
 
     // Build lookup maps
-    QHash<QString, Report::Circuit*> layoutMap;
-    QHash<QString, Report::Circuit*> schematicMap;
+    QHash<QString, Report::Circuit *> layoutMap;
+    QHash<QString, Report::Circuit *> schematicMap;
     for (auto &circuit : report.circuits) {
-        if (!circuit.layoutCell.isEmpty()) layoutMap.insert(circuit.layoutCell, &circuit);
-        if (!circuit.schematicCell.isEmpty()) schematicMap.insert(circuit.schematicCell, &circuit);
+        if (!circuit.layoutCell.isEmpty())
+            layoutMap.insert(circuit.layoutCell, &circuit);
+        if (!circuit.schematicCell.isEmpty())
+            schematicMap.insert(circuit.schematicCell, &circuit);
     }
 
     // Build parent-child links based on device list references
     for (auto &parent : report.circuits) {
         auto linkChild = [&](const QString &name) {
-            if (name.isEmpty()) return;
+            if (name.isEmpty())
+                return;
             if (!parent.subcircuits.contains(name)) {
                 Report::Circuit *child = layoutMap.value(name, nullptr);
-                if (!child) child = schematicMap.value(name, nullptr);
+                if (!child)
+                    child = schematicMap.value(name, nullptr);
                 if (child && child != &parent) {
                     child->isTopLevel = false;
                     parent.subcircuits.insert(name, child);
@@ -390,11 +473,15 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
         }
     }
 
-    // Determine which circuits to keep: those with diffs or with descendant diffs.
-    QHash<Report::Circuit*, bool> hasDiffsCache;
-    std::function<bool(Report::Circuit*)> hasDiffsRecursive = [&](Report::Circuit *c) -> bool {
-        if (!c) return false;
-        if (hasDiffsCache.contains(c)) return hasDiffsCache.value(c);
+    // Determine which circuits to keep: those with diffs or with descendant
+    // diffs.
+    QHash<Report::Circuit *, bool> hasDiffsCache;
+    std::function<bool(Report::Circuit *)> hasDiffsRecursive =
+        [&](Report::Circuit *c) -> bool {
+        if (!c)
+            return false;
+        if (hasDiffsCache.contains(c))
+            return hasDiffsCache.value(c);
         bool has = !c->diffs.isEmpty();
         for (auto *child : c->subcircuits) {
             if (hasDiffsRecursive(child)) {
@@ -438,15 +525,19 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
     layoutMap.clear();
     schematicMap.clear();
     for (auto &circuit : report.circuits) {
-        if (!circuit.layoutCell.isEmpty()) layoutMap.insert(circuit.layoutCell, &circuit);
-        if (!circuit.schematicCell.isEmpty()) schematicMap.insert(circuit.schematicCell, &circuit);
+        if (!circuit.layoutCell.isEmpty())
+            layoutMap.insert(circuit.layoutCell, &circuit);
+        if (!circuit.schematicCell.isEmpty())
+            schematicMap.insert(circuit.schematicCell, &circuit);
     }
     for (auto &parent : report.circuits) {
         auto linkChild = [&](const QString &name) {
-            if (name.isEmpty()) return;
+            if (name.isEmpty())
+                return;
             if (!parent.subcircuits.contains(name)) {
                 Report::Circuit *child = layoutMap.value(name, nullptr);
-                if (!child) child = schematicMap.value(name, nullptr);
+                if (!child)
+                    child = schematicMap.value(name, nullptr);
                 if (child && child != &parent) {
                     child->isTopLevel = false;
                     parent.subcircuits.insert(name, child);
@@ -462,8 +553,7 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) const
     return report;
 }
 
-QString NetgenJsonParser::toTypeString(NetgenJsonParser::DiffType type)
-{
+QString NetgenJsonParser::toTypeString(NetgenJsonParser::DiffType type) {
     switch (type) {
     case NetgenJsonParser::DiffType::NetMismatch:
         return QStringLiteral("net_mismatch");
@@ -479,8 +569,8 @@ QString NetgenJsonParser::toTypeString(NetgenJsonParser::DiffType type)
     }
 }
 
-QString NetgenJsonParser::toSubtypeString(NetgenJsonParser::DiffEntry::Subtype subtype)
-{
+QString NetgenJsonParser::toSubtypeString(
+    NetgenJsonParser::DiffEntry::Subtype subtype) {
     switch (subtype) {
     case DiffEntry::Subtype::MissingParameter:
         return QStringLiteral("missing parameter");

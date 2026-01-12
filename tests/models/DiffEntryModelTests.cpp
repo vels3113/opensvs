@@ -1,18 +1,16 @@
 #include <QtTest>
 
-#include "parsers/NetgenJsonParser.hpp"
 #include "models/DiffEntryModel.hpp"
+#include "parsers/NetgenJsonParser.hpp"
 
-class DiffEntryModelTests : public QObject
-{
+class DiffEntryModelTests : public QObject {
     Q_OBJECT
 
-private slots:
+  private slots:
     void populates_rows_and_columns();
 };
 
-void DiffEntryModelTests::populates_rows_and_columns()
-{
+void DiffEntryModelTests::populates_rows_and_columns() {
     QVector<NetgenJsonParser::DiffEntry> diffs;
     NetgenJsonParser::DiffEntry first;
     first.type = NetgenJsonParser::DiffType::NetMismatch;
@@ -37,11 +35,17 @@ void DiffEntryModelTests::populates_rows_and_columns()
     QCOMPARE(model.columnCount(), 6);
 
     const QModelIndex idx = model.index(0, 0);
-    QCOMPARE(model.data(idx, Qt::DisplayRole).toString(), QStringLiteral("net_mismatch"));
-    QCOMPARE(model.data(model.index(0, 2), Qt::DisplayRole).toString(), QStringLiteral("net_vdd"));
-    QCOMPARE(model.data(model.index(0, 3), Qt::DisplayRole).toString(), QStringLiteral("top_layout"));
-    QCOMPARE(model.data(model.index(0, 4), Qt::DisplayRole).toString(), QStringLiteral("top_schem"));
-    QVERIFY(model.data(model.index(0, 5), Qt::DisplayRole).toString().contains(QStringLiteral("Extra connection")));
+    QCOMPARE(model.data(idx, Qt::DisplayRole).toString(),
+             QStringLiteral("net_mismatch"));
+    QCOMPARE(model.data(model.index(0, 2), Qt::DisplayRole).toString(),
+             QStringLiteral("net_vdd"));
+    QCOMPARE(model.data(model.index(0, 3), Qt::DisplayRole).toString(),
+             QStringLiteral("top_layout"));
+    QCOMPARE(model.data(model.index(0, 4), Qt::DisplayRole).toString(),
+             QStringLiteral("top_schem"));
+    QVERIFY(model.data(model.index(0, 5), Qt::DisplayRole)
+                .toString()
+                .contains(QStringLiteral("Extra connection")));
 }
 
 QTEST_MAIN(DiffEntryModelTests)

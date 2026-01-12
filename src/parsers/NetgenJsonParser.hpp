@@ -4,9 +4,8 @@
 #include <QString>
 #include <QVector>
 
-class NetgenJsonParser
-{
-public:
+class NetgenJsonParser {
+  public:
     enum class DiffType {
         Unknown,
         NetMismatch,
@@ -57,7 +56,7 @@ public:
             QStringList devicesB;
             QVector<DiffEntry> diffs;
             bool isTopLevel{true};
-            QHash<QString, Circuit*> subcircuits;
+            QHash<QString, Circuit *> subcircuits;
             int index = -1;
         };
         QVector<Circuit> circuits;

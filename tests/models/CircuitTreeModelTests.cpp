@@ -4,16 +4,14 @@
 #include "models/DiffEntryModel.hpp"
 #include "models/DiffFilterProxyModel.hpp"
 
-class CircuitTreeModelTests : public QObject
-{
+class CircuitTreeModelTests : public QObject {
     Q_OBJECT
 
-private slots:
+  private slots:
     void builds_tree_and_filters();
 };
 
-void CircuitTreeModelTests::builds_tree_and_filters()
-{
+void CircuitTreeModelTests::builds_tree_and_filters() {
     // Prepare circuits hierarchy: root -> child.
     NetgenJsonParser::Report::Circuit root;
     root.layoutCell = QStringLiteral("rootA");
@@ -46,8 +44,12 @@ void CircuitTreeModelTests::builds_tree_and_filters()
     // Check proxy filtering by circuit index.
     DiffEntryModel diffModel;
     QVector<NetgenJsonParser::DiffEntry> diffs;
-    NetgenJsonParser::DiffEntry d1; d1.name = QStringLiteral("d1"); d1.circuitIndex = 0;
-    NetgenJsonParser::DiffEntry d2; d2.name = QStringLiteral("d2"); d2.circuitIndex = 1;
+    NetgenJsonParser::DiffEntry d1;
+    d1.name = QStringLiteral("d1");
+    d1.circuitIndex = 0;
+    NetgenJsonParser::DiffEntry d2;
+    d2.name = QStringLiteral("d2");
+    d2.circuitIndex = 1;
     diffs << d1 << d2;
     diffModel.setDiffs(diffs);
 

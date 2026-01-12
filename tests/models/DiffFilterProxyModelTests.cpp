@@ -3,16 +3,14 @@
 #include "models/DiffEntryModel.hpp"
 #include "models/DiffFilterProxyModel.hpp"
 
-class DiffFilterProxyModelTests : public QObject
-{
+class DiffFilterProxyModelTests : public QObject {
     Q_OBJECT
 
-private slots:
+  private slots:
     void filters_by_type_and_search();
 };
 
-void DiffFilterProxyModelTests::filters_by_type_and_search()
-{
+void DiffFilterProxyModelTests::filters_by_type_and_search() {
     QVector<NetgenJsonParser::DiffEntry> diffs;
     NetgenJsonParser::DiffEntry first;
     first.type = NetgenJsonParser::DiffType::NetMismatch;

@@ -1,8 +1,8 @@
 #pragma once
 
+#include <QDir>
 #include <QMainWindow>
 #include <QStringList>
-#include <QDir>
 
 class QLabel;
 class QTableView;
@@ -19,25 +19,25 @@ class QPlainTextEdit;
 class QLineEdit;
 class QTreeView;
 
+#include "models/CircuitTreeModel.hpp"
 #include "models/DiffEntryModel.hpp"
 #include "models/DiffFilterProxyModel.hpp"
-#include "models/CircuitTreeModel.hpp"
 #include "parsers/NetgenJsonParser.hpp"
 
-
-class MainWindow : public QMainWindow
-{
+class MainWindow : public QMainWindow {
     Q_OBJECT
 
-public:
+  public:
     explicit MainWindow(QWidget *parent = nullptr);
 
     bool loadFile(const QString &path, bool showError = false);
 
-private:
+  private:
     void buildUi();
     void buildMenus();
-    void setSummary(int device, int net, int shorts, int opens, int totalDevices, int totalNets, const QString &layoutCell, const QString &schematicCell);
+    void setSummary(int device, int net, int shorts, int opens,
+                    int totalDevices, int totalNets, const QString &layoutCell,
+                    const QString &schematicCell);
     void showStatus(const QString &msg);
     void logEvent(const QString &msg);
     void appendLogToDisk(const QString &line);

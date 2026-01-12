@@ -1,23 +1,26 @@
 #pragma once
 
-#include <QSortFilterProxyModel>
 #include <QRegularExpression>
 #include <QSet>
+#include <QSortFilterProxyModel>
 
-class DiffFilterProxyModel : public QSortFilterProxyModel
-{
+class DiffFilterProxyModel : public QSortFilterProxyModel {
     Q_OBJECT
-public:
+  public:
     explicit DiffFilterProxyModel(QObject *parent = nullptr);
 
-    void setTypeFilter(const QString &type); // empty or "All" means no type filter
-    void setSearchTerm(const QString &term); // case-insensitive substring on object/details
-    void setAllowedCircuits(const QSet<int> &circuits); // empty set means no circuit filter
+    void
+    setTypeFilter(const QString &type); // empty or "All" means no type filter
+    void setSearchTerm(
+        const QString &term); // case-insensitive substring on object/details
+    void setAllowedCircuits(
+        const QSet<int> &circuits); // empty set means no circuit filter
 
-protected:
-    bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const override;
+  protected:
+    bool filterAcceptsRow(int source_row,
+                          const QModelIndex &source_parent) const override;
 
-private:
+  private:
     QString typeFilter_;
     QString searchTerm_;
     QRegularExpression searchRegex_;
