@@ -13,6 +13,10 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
     # For heavier checking you could use:
     # add_compile_definitions(_GLIBCXX_DEBUG _GLIBCXX_DEBUG_PEDANTIC)
   endif()
+  if (ENABLE_COVERAGE)
+    add_compile_options(-fprofile-arcs -ftest-coverage)
+    add_link_options(-fprofile-arcs -ftest-coverage)
+  endif()
 endif()
 
 add_executable(netgenjson_parser_tests

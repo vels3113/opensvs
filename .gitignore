@@ -1,6 +1,7 @@
 build/*
 .cache
 .vscode
+.coverage*
 Testing
 compile_commands.json
 clang-tidy-report.txt
