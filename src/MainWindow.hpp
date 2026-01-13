@@ -40,7 +40,7 @@ class MainWindow : public QMainWindow {
                     const QString &schematicCell);
     void showStatus(const QString &msg);
     void logEvent(const QString &msg);
-    void appendLogToDisk(const QString &line);
+    static void appendLogToDisk(const QString &line);
     void rebuildRecentFilesMenu();
     void openLogDialog();
     static auto logFilePath() -> QString;

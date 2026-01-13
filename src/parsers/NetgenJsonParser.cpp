@@ -11,7 +11,8 @@
 #include <qjsonarray.h>
 #include <qjsonvalue.h>
 
-NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) {
+auto NetgenJsonParser::parseFile(const QString &path)
+    -> NetgenJsonParser::Report {
     Report report;
 
     QFile file(path);
@@ -43,7 +44,7 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) {
 
     report.circuits.reserve(arr.size());
     int circuitIdx = 0;
-    for (const QJsonValue &rootVal : arr) {
+    for (const QJsonValueConstRef &rootVal : arr) {
         if (!rootVal.isObject()) {
             continue;
         }
@@ -69,7 +70,8 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) {
             rootObj.value(QStringLiteral("devices")).toArray();
         if (!devicesArr.isEmpty() && devicesArr.first().isArray()) {
             int total = 0;
-            for (const QJsonValue &devVal : devicesArr.first().toArray()) {
+            for (const QJsonValueConstRef &devVal :
+                 devicesArr.first().toArray()) {
                 if (devVal.isArray()) {
                     const QJsonArray pair = devVal.toArray();
                     if (pair.size() > 1) {
@@ -83,7 +85,8 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) {
             sub.summary.totalDevices = total;
             if (devicesArr.size() > 1) {
                 int totalB = 0;
-                for (const QJsonValue &devVal : devicesArr.at(1).toArray()) {
+                for (const QJsonValueConstRef &devVal :
+                     devicesArr.at(1).toArray()) {
                     if (devVal.isArray()) {
                         const QJsonArray pair = devVal.toArray();
                         if (pair.size() > 1) {
@@ -106,7 +109,7 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) {
             namesArr.size() > 1 ? namesArr.at(1).toString() : QString();
         const QJsonArray propertiesArr =
             rootObj.value(QStringLiteral("properties")).toArray();
-        for (const QJsonValue &val : propertiesArr) {
+        for (const QJsonValueConstRef &val : propertiesArr) {
             const QJsonArray pairArr = val.toArray();
             if (pairArr.size() < 2) {
                 continue;
@@ -120,16 +123,17 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) {
             const QString nameB = deviceB.at(0).toString();
             const QJsonArray paramsA = deviceA.at(1).toArray();
             const QJsonArray paramsB = deviceB.at(1).toArray();
-            const int maxParams = std::max(paramsA.size(), paramsB.size());
+            const int maxParams = std::max(static_cast<int>(paramsA.size()),
+                                           static_cast<int>(paramsB.size()));
             for (int i = 0; i < maxParams; ++i) {
-                const QJsonArray pA =
+                const QJsonArray paramA =
                     i < paramsA.size() ? paramsA.at(i).toArray() : QJsonArray();
-                const QJsonArray pB =
+                const QJsonArray paramB =
                     i < paramsB.size() ? paramsB.at(i).toArray() : QJsonArray();
                 const QString paramNameA =
-                    !pA.isEmpty() ? pA.at(0).toString() : QString();
+                    !paramA.isEmpty() ? paramA.at(0).toString() : QString();
                 const QString paramNameB =
-                    !pB.isEmpty() ? pB.at(0).toString() : QString();
+                    !paramB.isEmpty() ? paramB.at(0).toString() : QString();
                 const bool missingParamA = paramNameA.contains(
                     QStringLiteral("(no matching parameter)"),
                     Qt::CaseSensitive);
@@ -157,11 +161,11 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) {
                     }
                 }
 
-                if (pA.size() > 1) {
-                    valA = pA.at(1).toString();
+                if (paramA.size() > 1) {
+                    valA = paramA.at(1).toString();
                 }
-                if (pB.size() > 1) {
-                    valB = pB.at(1).toString();
+                if (paramB.size() > 1) {
+                    valB = paramB.at(1).toString();
                 }
 
                 if (valA == valB) {
@@ -192,7 +196,7 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) {
         QStringList nameOrder;
 
         auto normalizeName = [](const QString &n) {
-            const QString lower = n.trimmed().toLower();
+            QString lower = n.trimmed().toLower();
             if (lower == QStringLiteral("gnd") ||
                 lower == QStringLiteral("0")) {
                 return QStringLiteral("0");
@@ -201,8 +205,8 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) {
         };
         auto connectionList = [](const QJsonArray &arr) {
             QStringList parts;
-            for (const QJsonValue &v : arr) {
-                const QJsonArray conn = v.toArray();
+            for (const QJsonValueConstRef &ref_conn : arr) {
+                const QJsonArray conn = ref_conn.toArray();
                 if (conn.size() >= 2) {
                     QString dev = conn.at(0).toString();
                     const QString port = conn.at(1).toString();
@@ -237,7 +241,7 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) {
             }
         };
 
-        for (const QJsonValue &val : badnetsArr) {
+        for (const QJsonValueConstRef &val : badnetsArr) {
             if (!val.isArray()) {
                 continue;
             }
@@ -249,14 +253,14 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) {
                 pairArr.at(1).isArray()) {
                 const QJsonArray netsListA = pairArr.at(0).toArray();
                 const QJsonArray netsListB = pairArr.at(1).toArray();
-                for (const QJsonValue &na : netsListA) {
-                    if (na.isArray()) {
-                        captureNet(na.toArray(), netsA);
+                for (const QJsonValueConstRef &netA : netsListA) {
+                    if (netA.isArray()) {
+                        captureNet(netA.toArray(), netsA);
                     }
                 }
-                for (const QJsonValue &nb : netsListB) {
-                    if (nb.isArray()) {
-                        captureNet(nb.toArray(), netsB);
+                for (const QJsonValueConstRef &netB : netsListB) {
+                    if (netB.isArray()) {
+                        captureNet(netB.toArray(), netsB);
                     }
                 }
             }
@@ -266,20 +270,20 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) {
             const bool hasA = netsA.contains(name);
             const bool hasB = netsB.contains(name);
             if (hasA && hasB) {
-                const auto &a = netsA.value(name);
-                const auto &b = netsB.value(name);
-                const QSet<QString> setA(a.connections.begin(),
-                                         a.connections.end());
-                const QSet<QString> setB(b.connections.begin(),
-                                         b.connections.end());
+                const auto &netA = netsA.value(name);
+                const auto &netB = netsB.value(name);
+                const QSet<QString> setA(netA.connections.begin(),
+                                         netA.connections.end());
+                const QSet<QString> setB(netB.connections.begin(),
+                                         netB.connections.end());
                 QStringList onlyA;
-                for (const auto &conn : a.connections) {
+                for (const auto &conn : netA.connections) {
                     if (!setB.contains(conn)) {
                         onlyA.append(conn);
                     }
                 }
                 QStringList onlyB;
-                for (const auto &conn : b.connections) {
+                for (const auto &conn : netB.connections) {
                     if (!setA.contains(conn)) {
                         onlyB.append(conn);
                     }
@@ -291,7 +295,8 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) {
                     entry.subtype =
                         bothSides ? DiffEntry::Subtype::UnmatchedConnections
                                   : DiffEntry::Subtype::MissingConnection;
-                    entry.name = !a.rawName.isEmpty() ? a.rawName : b.rawName;
+                    entry.name =
+                        !netA.rawName.isEmpty() ? netA.rawName : netB.rawName;
                     entry.layoutCell = sub.layoutCell;
                     entry.schematicCell = sub.schematicCell;
                     QStringList parts;
@@ -322,19 +327,19 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) {
                 entry.layoutCell = sub.layoutCell;
                 entry.schematicCell = sub.schematicCell;
                 if (hasA) {
-                    const auto &a = netsA.value(name);
+                    const auto &netA = netsA.value(name);
                     entry.details =
                         QStringLiteral("No matching net in Schematics circuit "
                                        "for %1 (connected to %2)")
-                            .arg(a.rawName,
-                                 a.connections.join(QStringLiteral(", ")));
+                            .arg(netA.rawName,
+                                 netA.connections.join(QStringLiteral(", ")));
                 } else {
-                    const auto &b = netsB.value(name);
+                    const auto &netB = netsB.value(name);
                     entry.details =
                         QStringLiteral("No matching net in Layout circuit for "
                                        "%1 (connected to %2)")
-                            .arg(b.rawName,
-                                 b.connections.join(QStringLiteral(", ")));
+                            .arg(netB.rawName,
+                                 netB.connections.join(QStringLiteral(", ")));
                 }
                 entry.circuitIndex = circuitIdx;
                 sub.diffs.push_back(entry);
@@ -346,7 +351,8 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) {
             rootObj.value(QStringLiteral("badelements")).toArray();
         auto processElementPair = [&](const QJsonArray &listA,
                                       const QJsonArray &listB) {
-            const int maxCount = std::max(listA.size(), listB.size());
+            const int maxCount = std::max(static_cast<int>(listA.size()),
+                                          static_cast<int>(listB.size()));
             for (int i = 0; i < maxCount; ++i) {
                 const QJsonArray elemA =
                     i < listA.size() ? listA.at(i).toArray() : QJsonArray();
@@ -431,7 +437,7 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) {
                                        first.at(1).toArray());
                 }
             } else {
-                for (const QJsonValue &val : badElementsArr) {
+                for (const QJsonValueConstRef &val : badElementsArr) {
                     if (!val.isArray()) {
                         continue;
                     }
@@ -491,28 +497,28 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) {
     // diffs.
     QHash<Report::Circuit *, bool> hasDiffsCache;
     std::function<bool(Report::Circuit *)> hasDiffsRecursive =
-        [&](Report::Circuit *c) -> bool {
-        if (c == nullptr) {
+        [&](Report::Circuit *cir) -> bool {
+        if (cir == nullptr) {
             return false;
         }
-        if (hasDiffsCache.contains(c)) {
-            return hasDiffsCache.value(c);
+        if (hasDiffsCache.contains(cir)) {
+            return hasDiffsCache.value(cir);
         }
-        bool has = !c->diffs.isEmpty();
-        for (auto *child : c->subcircuits) {
+        bool has = !cir->diffs.isEmpty();
+        for (auto *child : cir->subcircuits) {
             if (hasDiffsRecursive(child)) {
                 has = true;
             }
         }
-        hasDiffsCache.insert(c, has);
+        hasDiffsCache.insert(cir, has);
         return has;
     };
 
     QVector<Report::Circuit> kept;
     kept.reserve(report.circuits.size());
-    for (auto &c : report.circuits) {
-        if (hasDiffsRecursive(&c)) {
-            kept.push_back(c);
+    for (auto &cir : report.circuits) {
+        if (hasDiffsRecursive(&cir)) {
+            kept.push_back(cir);
         }
     }
 
@@ -520,22 +526,22 @@ NetgenJsonParser::Report NetgenJsonParser::parseFile(const QString &path) {
     report.summary = Summary{};
     report.circuits.clear();
     report.circuits.reserve(kept.size());
-    for (auto &c : kept) {
-        c.subcircuits.clear();
-        c.isTopLevel = true;
-        c.index = report.circuits.size();
-        for (auto &d : c.diffs) {
-            d.circuitIndex = c.index;
+    for (auto &cir : kept) {
+        cir.subcircuits.clear();
+        cir.isTopLevel = true;
+        cir.index = report.circuits.size();
+        for (auto &entry : cir.diffs) {
+            entry.circuitIndex = cir.index;
         }
-        report.summary.deviceMismatches += c.summary.deviceMismatches;
-        report.summary.netMismatches += c.summary.netMismatches;
-        report.summary.shorts += c.summary.shorts;
-        report.summary.opens += c.summary.opens;
-        report.summary.totalDevices += c.summary.totalDevices;
-        report.summary.totalNets += c.summary.totalNets;
-        report.summary.layoutCell = c.layoutCell;
-        report.summary.schematicCell = c.schematicCell;
-        report.circuits.push_back(c);
+        report.summary.deviceMismatches += cir.summary.deviceMismatches;
+        report.summary.netMismatches += cir.summary.netMismatches;
+        report.summary.shorts += cir.summary.shorts;
+        report.summary.opens += cir.summary.opens;
+        report.summary.totalDevices += cir.summary.totalDevices;
+        report.summary.totalNets += cir.summary.totalNets;
+        report.summary.layoutCell = cir.layoutCell;
+        report.summary.schematicCell = cir.schematicCell;
+        report.circuits.push_back(cir);
     }
 
     layoutMap.clear();

@@ -20,10 +20,10 @@ class CircuitTreeModel : public QAbstractItemModel {
     rowCount(const QModelIndex &parent = QModelIndex()) const -> int override;
     auto columnCount(const QModelIndex &parent = QModelIndex()) const
         -> int override;
-    auto data(const QModelIndex &index,
+    auto data(const QModelIndex &idx,
               int role = Qt::DisplayRole) const -> QVariant override;
 
-    auto circuitForIndex(const QModelIndex &idx) const
+    static auto circuitForIndex(const QModelIndex &idx)
         -> NetgenJsonParser::Report::Circuit *;
 
   private:

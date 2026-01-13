@@ -19,7 +19,7 @@ void NetgenJsonParserTests::parses_sample_fixture() {
     NetgenJsonParser parser;
     const QString fixturePath = QStringLiteral(FIXTURE_PATH);
 
-    auto report = parser.parseFile(fixturePath);
+    auto report = NetgenJsonParser::parseFile(fixturePath);
     QVERIFY2(report.ok,
              qPrintable(QStringLiteral("Expected ok parse, got error: %1")
                             .arg(report.error)));
@@ -60,7 +60,7 @@ void NetgenJsonParserTests::parses_tut2_fixture() {
     NetgenJsonParser parser;
     const QString fixturePath = QStringLiteral(TUT2_PATH);
 
-    auto report = parser.parseFile(fixturePath);
+    auto report = NetgenJsonParser::parseFile(fixturePath);
     QVERIFY2(report.ok,
              qPrintable(QStringLiteral("Expected ok parse, got error: %1")
                             .arg(report.error)));
@@ -118,7 +118,7 @@ void NetgenJsonParserTests::parses_tut3_fixture() {
     NetgenJsonParser parser;
     const QString fixturePath = QStringLiteral(TUT3_PATH);
 
-    auto report = parser.parseFile(fixturePath);
+    auto report = NetgenJsonParser::parseFile(fixturePath);
     QVERIFY2(report.ok,
              qPrintable(QStringLiteral("Expected ok parse, got error: %1")
                             .arg(report.error)));
@@ -155,7 +155,7 @@ void NetgenJsonParserTests::parses_tut6_fixture_instance_mismatches() {
     NetgenJsonParser parser;
     const QString fixturePath = QStringLiteral(TUT6_PATH);
 
-    auto report = parser.parseFile(fixturePath);
+    auto report = NetgenJsonParser::parseFile(fixturePath);
     QVERIFY2(report.ok,
              qPrintable(QStringLiteral("Expected ok parse, got error: %1")
                             .arg(report.error)));
@@ -174,7 +174,6 @@ void NetgenJsonParserTests::parses_tut6_fixture_instance_mismatches() {
                        "matching instance")));
 }
 
-
 void NetgenJsonParserTests::fails_on_invalid_json() {
     NetgenJsonParser parser;
 
@@ -183,7 +182,7 @@ void NetgenJsonParserTests::fails_on_invalid_json() {
     tmpFile.write("{ invalid json ");
     tmpFile.flush();
 
-    auto report = parser.parseFile(tmpFile.fileName());
+    auto report = NetgenJsonParser::parseFile(tmpFile.fileName());
     QVERIFY(!report.ok);
     QVERIFY(!report.error.isEmpty());
 }

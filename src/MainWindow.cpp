@@ -29,7 +29,6 @@
 #include <QTextStream>
 #include <QTreeView>
 #include <QVBoxLayout>
-#include <functional>
 
 #include "models/CircuitTreeModel.hpp"
 #include "models/DiffEntryCommon.hpp"
@@ -37,18 +36,28 @@
 #include "models/DiffFilterProxyModel.hpp"
 #include "parsers/NetgenJsonParser.hpp"
 
-namespace {
-const auto kDockStyle =
+namespace QtConfig {
+const auto dockStyle =
     QStringLiteral("QDockWidget { border: 1px solid #666; } "
                    "QDockWidget::widget { border: 1px solid #666; }");
-}
+const int windowW = 800;
+const int windowH = 600;
+const int circuitTreeW = 200;
+const int columnW = 120;
+const int welcomeMargin = 16;
+const int horizontalSpacing = 12;
+const int verticalSpacing = 8;
+const int contentMargin = 8;
+const int contentSpacing = 8;
+const int timeout = 5000;
+} // namespace QtConfig
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), diffModel_(new DiffEntryModel(this)),
       proxyModel_(new DiffFilterProxyModel(this)),
       circuitTreeModel_(new CircuitTreeModel(this)) {
     setWindowTitle(tr("OpenSVS"));
-    setMinimumSize(800, 600);
+    setMinimumSize(QtConfig::windowW, QtConfig::windowH);
     loadRecentFiles();
     buildUi();
     buildMenus();
@@ -63,7 +72,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 auto MainWindow::loadFile(const QString &path, bool showError) -> bool {
     NetgenJsonParser parser;
-    auto report = parser.parseFile(path);
+    auto report = NetgenJsonParser::parseFile(path);
     if (!report.ok) {
         if (showError) {
             QMessageBox::critical(this, tr("Failed to load"), report.error);
@@ -82,8 +91,8 @@ auto MainWindow::loadFile(const QString &path, bool showError) -> bool {
     }
 
     QVector<NetgenJsonParser::DiffEntry> allDiffs;
-    for (const auto &c : circuits_) {
-        allDiffs += c.diffs;
+    for (const auto &cir : circuits_) {
+        allDiffs += cir.diffs;
     }
 
     diffModel_->setDiffs(allDiffs);
@@ -120,8 +129,10 @@ void MainWindow::buildUi() {
     // Welcome page
     welcomePage_ = new QWidget(stack_);
     auto *welcomeLayout = new QVBoxLayout(welcomePage_);
-    welcomeLayout->setContentsMargins(16, 16, 16, 16);
-    welcomeLayout->setSpacing(12);
+    welcomeLayout->setContentsMargins(
+        QtConfig::welcomeMargin, QtConfig::welcomeMargin,
+        QtConfig::welcomeMargin, QtConfig::welcomeMargin);
+    welcomeLayout->setSpacing(QtConfig::horizontalSpacing);
     auto *welcomeLabel = new QLabel(
         tr("OpenSVS\nLoad a netgen JSON report to begin."), welcomePage_);
     welcomeLabel->setAlignment(Qt::AlignCenter);
@@ -135,15 +146,17 @@ void MainWindow::buildUi() {
     // Content page
     contentPage_ = new QWidget(stack_);
     auto *layout = new QVBoxLayout(contentPage_);
-    layout->setContentsMargins(8, 8, 8, 8);
-    layout->setSpacing(8);
+    layout->setContentsMargins(QtConfig::contentMargin, QtConfig::contentMargin,
+                               QtConfig::contentMargin,
+                               QtConfig::contentMargin);
+    layout->setSpacing(QtConfig::contentSpacing);
 
     auto *filterRow = new QHBoxLayout();
-    filterRow->setSpacing(8);
+    filterRow->setSpacing(QtConfig::contentSpacing);
 
     auto *summaryGrid = new QGridLayout();
-    summaryGrid->setHorizontalSpacing(12);
-    summaryGrid->setVerticalSpacing(6);
+    summaryGrid->setHorizontalSpacing(QtConfig::horizontalSpacing);
+    summaryGrid->setVerticalSpacing(QtConfig::verticalSpacing);
 
     auto makeSummaryRow = [&](int row, const QString &labelText,
                               QLabel **valueLabel, const char *objectName) {
@@ -193,12 +206,12 @@ void MainWindow::buildUi() {
     diffTable_->horizontalHeader()->setStretchLastSection(true);
     diffTable_->setSelectionBehavior(QAbstractItemView::SelectRows);
     diffTable_->setSelectionMode(QAbstractItemView::SingleSelection);
-    diffTable_->setColumnWidth(DiffEntryColumns::SUBTYPE, 120);
+    diffTable_->setColumnWidth(DiffEntryColumns::SUBTYPE, QtConfig::columnW);
 
     circuitTree_ = new QTreeView(contentPage_);
     circuitTree_->setObjectName(QStringLiteral("circuitTree"));
     circuitTree_->setHeaderHidden(true);
-    circuitTree_->setMinimumWidth(200);
+    circuitTree_->setMinimumWidth(QtConfig::circuitTreeW);
     circuitTree_->setModel(circuitTreeModel_);
     circuitTree_->setExpandsOnDoubleClick(true);
     circuitTree_->collapseAll();
@@ -208,7 +221,7 @@ void MainWindow::buildUi() {
 
     auto *tableRow = new QHBoxLayout();
     tableRow->setContentsMargins(0, 0, 0, 0);
-    tableRow->setSpacing(8);
+    tableRow->setSpacing(QtConfig::contentSpacing);
     tableRow->addWidget(circuitTree_, 0);
     tableRow->addWidget(diffTable_, 1);
 
@@ -304,8 +317,8 @@ void MainWindow::setSummary(int device, int net, int shorts, int opens,
 }
 
 void MainWindow::showStatus(const QString &msg) {
-    if (QStatusBar *sb = statusBar()) {
-        sb->showMessage(msg, 5000);
+    if (QStatusBar *bar = statusBar()) {
+        bar->showMessage(msg, QtConfig::timeout);
     }
 }
 
@@ -326,17 +339,18 @@ void MainWindow::logEvent(const QString &msg) {
 
 void MainWindow::appendLogToDisk(const QString &line) {
     const QString path = logFilePath();
+    const auto MAX_SIZE = static_cast<const qint64>(1024 * 1024);
     if (path.isEmpty()) {
         return;
     }
 
-    QFile f(path);
-    if (f.size() > 1024 * 1024) { // rotate at ~1MB
+    QFile logFile(path);
+    if (logFile.size() > MAX_SIZE) { // rotate at ~1MB
         QFile::remove(path + QStringLiteral(".1"));
-        f.rename(path + QStringLiteral(".1"));
+        logFile.rename(path + QStringLiteral(".1"));
     }
-    if (f.open(QIODevice::Append | QIODevice::Text)) {
-        QTextStream out(&f);
+    if (logFile.open(QIODevice::Append | QIODevice::Text)) {
+        QTextStream out(&logFile);
         out << line << '\n';
     }
 }
@@ -366,7 +380,7 @@ void MainWindow::openLogDialog() {
     logDock_->activateWindow();
 }
 
-QString MainWindow::logFilePath() {
+auto MainWindow::logFilePath() -> QString {
     const QString dir =
         QStandardPaths::writableLocation(QStandardPaths::TempLocation);
     if (dir.isEmpty()) {
@@ -380,14 +394,14 @@ void MainWindow::loadRecentFiles() {
     if (path.isEmpty()) {
         return;
     }
-    QFile f(path);
-    if (!f.open(QIODevice::ReadOnly | QIODevice::Text)) {
+    QFile recentFileList(path);
+    if (!recentFileList.open(QIODevice::ReadOnly | QIODevice::Text)) {
         return;
     }
     QStringList lines;
-    QTextStream in(&f);
-    while (!in.atEnd()) {
-        const QString line = in.readLine().trimmed();
+    QTextStream recentFilesStream(&recentFileList);
+    while (!recentFilesStream.atEnd()) {
+        const QString line = recentFilesStream.readLine().trimmed();
         if (!line.isEmpty()) {
             lines.append(line);
         }
@@ -405,16 +419,17 @@ void MainWindow::saveRecentFiles() const {
         return;
     }
     QDir().mkpath(QFileInfo(path).absolutePath());
-    QFile f(path);
-    if (f.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate)) {
-        QTextStream out(&f);
-        for (const QString &p : recentFiles_) {
-            out << p << '\n';
+    QFile recentFilesList(path);
+    if (recentFilesList.open(QIODevice::WriteOnly | QIODevice::Text |
+                             QIODevice::Truncate)) {
+        QTextStream out(&recentFilesList);
+        for (const QString &file : recentFiles_) {
+            out << file << '\n';
         }
     }
 }
 
-QString MainWindow::recentFilesPath() {
+auto MainWindow::recentFilesPath() -> QString {
     const QString dir =
         QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
     if (dir.isEmpty()) {
@@ -444,7 +459,7 @@ void MainWindow::ensureLogDock() {
                           QDockWidget::DockWidgetMovable |
                           QDockWidget::DockWidgetFloatable);
     logDock_->setAllowedAreas(Qt::AllDockWidgetAreas);
-    logDock_->setStyleSheet(kDockStyle);
+    logDock_->setStyleSheet(QtConfig::dockStyle);
     logView_ = new QPlainTextEdit(logDock_);
     logView_->setReadOnly(true);
     logDock_->setWidget(logView_);
@@ -471,17 +486,17 @@ void MainWindow::applyCircuitFilter(const QModelIndex &index) {
             return;
         }
         if (circuit->index >= 0) {
-            allowed.insert(circuit->index);
+            allowed.insert(static_cast<int>(circuit->index));
         }
         for (auto *child : circuit->subcircuits) {
             self(self, child);
         }
     };
 
-    NetgenJsonParser::Report::Circuit *c =
-        circuitTreeModel_->circuitForIndex(index);
-    if (c != nullptr) {
-        gather(gather, c);
+    NetgenJsonParser::Report::Circuit *cir =
+        CircuitTreeModel::circuitForIndex(index);
+    if (cir != nullptr) {
+        gather(gather, cir);
     } else {
         allowed.clear();
     }
@@ -508,7 +523,7 @@ void MainWindow::ensureLvsDock() {
                           QDockWidget::DockWidgetMovable |
                           QDockWidget::DockWidgetFloatable);
     lvsDock_->setAllowedAreas(Qt::AllDockWidgetAreas);
-    lvsDock_->setStyleSheet(kDockStyle);
+    lvsDock_->setStyleSheet(QtConfig::dockStyle);
 
     auto *container = new QWidget(lvsDock_);
     auto *vbox = new QVBoxLayout(container);
@@ -582,9 +597,9 @@ void MainWindow::ensureLvsDock() {
         QProcess proc(this);
         QStringList args;
         const QString workingDir = QFileInfo(rules).absolutePath();
-        auto makeRelative = [&](const QString &p) {
-            QDir wd(workingDir);
-            const QString rel = wd.relativeFilePath(p);
+        auto makeRelative = [&](const QString &path) {
+            QDir dir(workingDir);
+            const QString rel = dir.relativeFilePath(path);
             return rel;
         };
 

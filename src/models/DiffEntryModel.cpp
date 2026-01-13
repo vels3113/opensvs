@@ -7,7 +7,7 @@ auto DiffEntryModel::rowCount(const QModelIndex &parent) const -> int {
     if (parent.isValid()) {
         return 0;
     }
-    return diffs_.size();
+    return static_cast<int>(diffs_.size());
 }
 
 auto DiffEntryModel::columnCount(const QModelIndex &parent) const -> int {

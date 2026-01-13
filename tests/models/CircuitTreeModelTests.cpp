@@ -37,20 +37,20 @@ void CircuitTreeModelTests::builds_tree_and_filters() {
     QCOMPARE(treeModel.rowCount(rootIdx), 1); // one child
     QModelIndex childIdx = treeModel.index(0, 0, rootIdx);
     QVERIFY(childIdx.isValid());
-    auto *childPtr = treeModel.circuitForIndex(childIdx);
+    auto *childPtr = CircuitTreeModel::circuitForIndex(childIdx);
     QVERIFY(childPtr);
     QCOMPARE(childPtr->layoutCell, QStringLiteral("childA"));
 
     // Check proxy filtering by circuit index.
     DiffEntryModel diffModel;
     QVector<NetgenJsonParser::DiffEntry> diffs;
-    NetgenJsonParser::DiffEntry d1;
-    d1.name = QStringLiteral("d1");
-    d1.circuitIndex = 0;
-    NetgenJsonParser::DiffEntry d2;
-    d2.name = QStringLiteral("d2");
-    d2.circuitIndex = 1;
-    diffs << d1 << d2;
+    NetgenJsonParser::DiffEntry diff1;
+    diff1.name = QStringLiteral("d1");
+    diff1.circuitIndex = 0;
+    NetgenJsonParser::DiffEntry diff2;
+    diff2.name = QStringLiteral("d2");
+    diff2.circuitIndex = 1;
+    diffs << diff1 << diff2;
     diffModel.setDiffs(diffs);
 
     DiffFilterProxyModel proxy;

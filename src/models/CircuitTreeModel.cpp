@@ -1,6 +1,7 @@
 #include "models/CircuitTreeModel.hpp"
 
 #include <QString>
+#include <QtCore>
 
 CircuitTreeModel::CircuitTreeModel(QObject *parent)
     : QAbstractItemModel(parent) {}
@@ -62,7 +63,7 @@ auto CircuitTreeModel::parent(const QModelIndex &child) const -> QModelIndex {
     Node *parentNode = node->parent;
     Node *grand = parentNode->parent;
     const auto &siblings = (grand != nullptr) ? grand->children : roots_;
-    const int row = siblings.indexOf(parentNode);
+    const int row = static_cast<int>(siblings.indexOf(parentNode));
     if (row < 0) {
         return {};
     }
@@ -74,8 +75,8 @@ auto CircuitTreeModel::rowCount(const QModelIndex &parentIdx) const -> int {
         return 0;
     }
     Node *parentNode = nodeFromIndex(parentIdx);
-    return (parentNode != nullptr) ? parentNode->children.size()
-                                   : roots_.size();
+    return static_cast<int>(
+        (parentNode != nullptr) ? parentNode->children.size() : roots_.size());
 }
 
 auto CircuitTreeModel::columnCount(const QModelIndex & /*parent*/) const
@@ -92,18 +93,18 @@ auto CircuitTreeModel::data(const QModelIndex &idx,
     if ((node == nullptr) || (node->circuit == nullptr)) {
         return {};
     }
-    const auto *c = node->circuit;
-    return QStringLiteral("%1 vs %2").arg(c->layoutCell, c->schematicCell);
+    const auto *cir = node->circuit;
+    return QStringLiteral("%1 vs %2").arg(cir->layoutCell, cir->schematicCell);
 }
 
-auto CircuitTreeModel::circuitForIndex(const QModelIndex &idx) const
+auto CircuitTreeModel::circuitForIndex(const QModelIndex &idx)
     -> NetgenJsonParser::Report::Circuit * {
     Node *node = nodeFromIndex(idx);
     return (node != nullptr) ? node->circuit : nullptr;
 }
 
-CircuitTreeModel::Node *
-CircuitTreeModel::nodeFromIndex(const QModelIndex &idx) {
+auto CircuitTreeModel::nodeFromIndex(const QModelIndex &idx)
+    -> CircuitTreeModel::Node * {
     if (!idx.isValid()) {
         return nullptr;
     }

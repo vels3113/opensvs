@@ -5,7 +5,8 @@ Checks: >
   modernize-*,
   cppcoreguidelines-*,
   -readability-function-cognitive-complexity,
-  -modernize-use-nodiscard
+  -modernize-use-nodiscard,
+  -cppcoreguidelines-owning-memory
 
 WarningsAsErrors: "*"
 

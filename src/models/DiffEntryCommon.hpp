@@ -1,6 +1,6 @@
 #pragma once
 
-enum DiffEntryColumns {
+enum DiffEntryColumns : char {
     TYPE = 0,
     SUBTYPE,
     OBJECT,

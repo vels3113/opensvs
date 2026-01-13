@@ -6,7 +6,7 @@
 
 class NetgenJsonParser {
   public:
-    enum class DiffType {
+    enum class DiffType : char {
         Unknown,
         NetMismatch,
         DeviceMismatch,
@@ -27,7 +27,7 @@ class NetgenJsonParser {
 
     struct DiffEntry {
         DiffType type = DiffType::Unknown;
-        enum class Subtype {
+        enum class Subtype : char {
             Unknown,
             MissingParameter,
             MissingConnection,
@@ -41,7 +41,7 @@ class NetgenJsonParser {
         QString layoutCell;
         QString schematicCell;
         QString details;
-        int circuitIndex = -1;
+        long long circuitIndex = -1;
     };
 
     struct Report {
@@ -57,7 +57,7 @@ class NetgenJsonParser {
             QVector<DiffEntry> diffs;
             bool isTopLevel{true};
             QHash<QString, Circuit *> subcircuits;
-            int index = -1;
+            long long index = -1;
         };
         QVector<Circuit> circuits;
     };

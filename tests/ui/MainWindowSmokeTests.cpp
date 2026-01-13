@@ -13,10 +13,10 @@ class MainWindowSmokeTests : public QObject {
     Q_OBJECT
 
   private slots:
-    static void shows_welcome_and_populates_after_load();
+    static void welcome_and_load();
 };
 
-void MainWindowSmokeTests::shows_welcome_and_populates_after_load() {
+void MainWindowSmokeTests::welcome_and_load() {
     MainWindow window;
     auto *stack = window.findChild<QStackedWidget *>(
         QString(), Qt::FindChildrenRecursively);
