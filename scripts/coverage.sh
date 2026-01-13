@@ -46,7 +46,7 @@ echo "Capturing coverage data..."
 lcov --capture \
      --directory "$BUILD_DIR" \
      --output-file .coverage.info \
-     --rc lcov_branch_coverage=1
+     --rc branch_coverage=1
 
 # Filter out system headers and test files
 echo "Filtering coverage data..."
@@ -55,7 +55,7 @@ lcov --remove .coverage.info \
      '*/tests/*' \
      '*/build/*' \
      --output-file .coverage_filtered.info \
-     --rc lcov_branch_coverage=1 \
+     --rc branch_coverage=1 \
      --ignore-errors unused
 
 # Generate HTML report
@@ -65,12 +65,12 @@ genhtml .coverage_filtered.info \
         --title "OpenSVS Code Coverage" \
         --legend \
         --show-details \
-        --rc lcov_branch_coverage=1
+        --rc branch_coverage=1
 
 # Display summary
 echo ""
 echo "=== Coverage Summary ==="
-lcov --summary .coverage_filtered.info --rc lcov_branch_coverage=1
+lcov --summary .coverage_filtered.info --rc branch_coverage=1
 
 echo ""
 echo "HTML coverage report generated in: $COVERAGE_DIR/index.html"
